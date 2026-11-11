@@ -21,7 +21,7 @@ public class ConsulServiceDiscoveryTest
 
         var mockCatalogEndpoint = new Mock<ICatalogEndpoint>();
         mockCatalogEndpoint
-            .Setup(x => x.Service(serviceKey, default))
+            .Setup(x => x.Service(serviceKey, default(CancellationToken)))
             .ReturnsAsync(services);
 
         var mockClient = new Mock<IConsulClient>();
@@ -58,7 +58,7 @@ public class ConsulServiceDiscoveryTest
 
         var mockCatalogEndpoint = new Mock<ICatalogEndpoint>();
         mockCatalogEndpoint
-            .Setup(x => x.Service(serviceKey, default))
+            .Setup(x => x.Service(serviceKey, default(CancellationToken)))
             .ReturnsAsync(services);
 
         var mockClient = new Mock<IConsulClient>();
@@ -95,7 +95,7 @@ public class ConsulServiceDiscoveryTest
 
         var mockCatalogEndpoint = new Mock<ICatalogEndpoint>();
         mockCatalogEndpoint
-            .Setup(x => x.Service(serviceKey, default))
+            .Setup(x => x.Service(serviceKey, default(CancellationToken)))
             .ReturnsAsync(services);
 
         var mockClient = new Mock<IConsulClient>();
@@ -132,7 +132,7 @@ public class ConsulServiceDiscoveryTest
 
         var mockCatalogEndpoint = new Mock<ICatalogEndpoint>();
         mockCatalogEndpoint
-            .Setup(x => x.Service(serviceKey, default))
+            .Setup(x => x.Service(serviceKey, default(CancellationToken)))
             .ReturnsAsync(services);
 
         var mockClient = new Mock<IConsulClient>();
@@ -148,6 +148,6 @@ public class ConsulServiceDiscoveryTest
 
         // assert
         mockCatalogEndpoint
-            .Verify(x => x.Service(serviceKey, default), Times.Once);
+            .Verify(x => x.Service(serviceKey, default(CancellationToken)), Times.Once);
     }
 }

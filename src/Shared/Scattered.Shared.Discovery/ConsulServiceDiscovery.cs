@@ -26,7 +26,7 @@ public class ConsulServiceDiscovery : IServiceDiscovery
 
     public async Task<string> GetFullAddress(string serviceKey, CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(serviceKey, out DiscoveryData cachedData))
+        if (_cache.TryGetValue(serviceKey, out DiscoveryData? cachedData) && cachedData != null)
         {
             return GetAddressFromData(cachedData);
         }

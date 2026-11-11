@@ -14,14 +14,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.UI" Version="6.0.4" />
-    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="6.0.4" />
-    <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="6.0.4" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="9.0.0" />
+    <!-- HealthChecks.UI storage brings the EF Core 8 in-memory provider; it must match the EF Core version used by the MySql project -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
+    <!-- Pinned: the version pulled by HealthChecks.UI has a known vulnerability (GHSA-w7r3-mgwf-4mqq) -->
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <!-- HealthChecks.UI still needs IdentityModel, which the pinned KubernetesClient no longer brings -->
+    <PackageReference Include="IdentityModel" Version="5.2.0" />
     <PackageReference Include="Netmentor.ROP.ApiExtensions" Version="1.0.10" />
-    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.3.0" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.3.0" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.4" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.8.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.21.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.21.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.21.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.21.0" />
     <PackageReference Include="Scrutor" Version="4.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>

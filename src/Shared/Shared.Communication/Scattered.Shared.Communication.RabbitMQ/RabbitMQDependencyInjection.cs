@@ -4,7 +4,6 @@ using Scattered.Shared.Communication.Messages;
 using Scattered.Shared.Communication.Publisher;
 using Scattered.Shared.Communication.RabbitMQ.Consumer;
 using Scattered.Shared.Communication.RabbitMQ.Publisher;
-using Microsoft.AspNetCore.JsonPatch.Adapters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

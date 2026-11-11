@@ -1,7 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 
 namespace Scattered.Shared.Databases.MongoDb;
 
@@ -11,6 +15,11 @@ public static class MongoDbDependencyInjection
     {
         var conventionPack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
         ConventionRegistry.Register("IgnoreExtraElements", conventionPack, type => true);
+        // MongoDB.Driver 3.x requires an explicit Guid representation; CSharpLegacy is what 2.x used by default.
+        BsonSerializer.TryRegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
+        // The driver only (de)serializes allow-listed types stored as object, which is how events are saved in the event store.
+        BsonSerializer.TryRegisterSerializer(new ObjectSerializer(type =>
+            ObjectSerializer.DefaultAllowedTypes(type) || type.FullName?.StartsWith("Scattered.") == true));
         
         return serviceCollection.AddScoped<IMongoDbConnectionProvider, MongoDbConnectionProvider>(); 
     }
@@ -27,7 +36,8 @@ public static class MongoDbDependencyInjection
         ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
         string mongoConnectionString = serviceProvider.GetRequiredService<IMongoDbConnectionProvider>().GetMongoConnectionString();
         
-        serviceCollection.AddHealthChecks().AddMongoDb(mongoConnectionString, name, HealthStatus.Unhealthy);
+        MongoClient mongoClient = new MongoClient(mongoConnectionString);
+        serviceCollection.AddHealthChecks().AddMongoDb(_ => mongoClient, name: name, failureStatus: HealthStatus.Unhealthy);
         
         return serviceCollection;
     }

@@ -13,8 +13,8 @@ public static class OpenTelemetry
     
     public static void AddTracing(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        serviceCollection.AddOpenTelemetryTracing(builder => builder
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["AppName"]))
+        serviceCollection.AddOpenTelemetry().WithTracing(builder => builder
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["AppName"]!))
             .AddAspNetCoreInstrumentation()
             .AddOtlpExporter(exporter =>
             { 
@@ -27,8 +27,8 @@ public static class OpenTelemetry
 
     public static void AddMetrics(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        serviceCollection.AddOpenTelemetryMetrics(builder => builder
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["AppName"]))
+        serviceCollection.AddOpenTelemetry().WithMetrics(builder => builder
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["AppName"]!))
             .AddAspNetCoreInstrumentation()
             .AddOtlpExporter(exporter =>
             {
@@ -46,7 +46,7 @@ public static class OpenTelemetry
                 .AddOpenTelemetry(options =>
                 {
                     options.IncludeFormattedMessage = true;
-                    options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["AppName"]));
+                    options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(configuration["AppName"]!));
                     options.AddConsoleExporter();
                 }));
     }
