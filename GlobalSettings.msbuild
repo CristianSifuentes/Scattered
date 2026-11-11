@@ -1,8 +1,8 @@
 <Project>
   <PropertyGroup>
     <Authors>Ivan Abad</Authors>
-    <Company>NetMentor</Company>
-    <Product>NetMentor Scattered</Product>
+    <Company>CristianSifuentes</Company>
+    <Product>CristianSifuentes Scattered</Product>
     <Copyright>Copyright NetMentor 2022</Copyright>
     <Version>1.0.0</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

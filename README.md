@@ -15,9 +15,9 @@ La aplicación va a ser "vendor free" lo que quiere decir que no va a estar enla
 Es importante saber estos conceptos ya que cada día las empresas están migrando sus aplicaciones monolíticas a microservicios o incluso serverless, y para poder aplicar un correcto funcionamiento, debemos aprender sobre sistemas distribuidos. 
 
 ## Libro
-Este Febrero de 2025 he creado un libro que viene perfecto para acompañar el proceso de desarrollo de un sistema distribuido.
+En Febrero de 2025 el autor original publicó un libro que viene perfecto para acompañar el proceso de desarrollo de un sistema distribuido.
 
-Puedes acceder a el libro [Construyendo sistemas distribuidos](https://www.netmentor.es/libros/construyendo-sistemas-distribuidos) y apoyar al contenido. 
+Puedes acceder a el libro [Construyendo sistemas distribuidos](https://www.netmentor.es/libros/construyendo-sistemas-distribuidos) y apoyar su contenido. 
 
 
 
@@ -29,9 +29,9 @@ La arquitectura que vamos a ver es la siguiente:
 ![ScatteredDiagram](assets/diagram.png)
 - Nota: las etiquetas amarillas representan el código ya implementado.
 
-Puedes encontrar el proceso de creación del sistema en [mi curso de YouTube](https://www.youtube.com/playlist?list=PLesmOrW3mp4jpSbdFMtVWINJZ7OLdSASS).
+Puedes encontrar el proceso de creación del sistema en [el curso de YouTube del autor original](https://www.youtube.com/playlist?list=PLesmOrW3mp4jpSbdFMtVWINJZ7OLdSASS).
 
-Alternativamente, si lo prefieres, puedes seguir los post con el código detallado y los razonamientos sobre por qué se ha elegido cada tecnología en mi web [NetMentor - Curso Distribt](https://www.netmentor.es/curso/sistemas-distribuidos)
+Alternativamente, si lo prefieres, puedes seguir los post con el código detallado y los razonamientos sobre por qué se ha elegido cada tecnología en la web del autor original, [NetMentor - Curso Distribt](https://www.netmentor.es/curso/sistemas-distribuidos)
 
 Si estás siguiendo el curso vídeo a vídeo tienes diferentes branches en el repositorio original con el código de cada vídeo (de forma incremental) aquí:  https://github.com/ElectNewt/Distribt/branches/all 
 
@@ -82,15 +82,15 @@ Nota: Técnicamente cada carpeta representa un dominio y puede ser su propio rep
 
 Para ejecutar la aplicación correctamente debes tener [Docker](https://www.netmentor.es/curso/docker) instalado en tu máquina y entender cómo funciona docker-compose.
 
-He creado un fichero `docker-compose.yaml` que ya contiene toda la configuración necesaria para que una vez ejecutes la solución, esta funcione sin problemas.
+El repositorio incluye un fichero `docker-compose.yaml` que ya contiene toda la configuración necesaria para que una vez ejecutes la solución, esta funcione sin problemas.
 
 Eventualmente lo veremos toda la configuración en kubernetes (con [project tye](https://github.com/dotnet/tye)).
 
 Para poder ejecutar la aplicación correctamente en local, necestiaras ejecutar tanto el fichero `docker-compose` como la configuración para los diferentes servicios utilizados. 
 
-Para ahorrar tiempo he creado un fichero `bash` que ejectua todo `./tools/local-development/up.sh`
+Para ahorrar tiempo hay un fichero `bash` que ejectua todo `./tools/local-development/up.sh`
 
 Y luego simplemente ejecuta cada aplicacion de forma individual o en un compound para poder testearlas.
 
 ## Dale una estrella ⭐
-Si te gusta el proyecto no dudes en darle una estrella, hacer un fork junto a una PR o incluso apoyar económicamente el proyecto [donando un café](https://www.buymeacoffee.com/netmentor).
+Si te gusta el proyecto no dudes en darle una estrella, hacer un fork junto a una PR o incluso apoyar económicamente al autor original [donando un café](https://www.buymeacoffee.com/netmentor).
