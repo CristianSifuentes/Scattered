@@ -2,7 +2,7 @@
 
 ![Scattered](assets/scatteredLogo.jpg)
 
-> **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso, el libro y los artículos enlazados en este documento pertenecen al autor original.
+> **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
 > **Propósito de esta copia:** este repositorio existe con fines de aprendizaje. Su objetivo es replicar paso a paso el flujo del curso e ir agregando particularidades personales derivadas de ese aprendizaje, por lo que el código puede diferir del proyecto original.
 
@@ -15,13 +15,6 @@ La aplicación va a ser "vendor free" lo que quiere decir que no va a estar enla
 
 
 Es importante saber estos conceptos ya que cada día las empresas están migrando sus aplicaciones monolíticas a microservicios o incluso serverless, y para poder aplicar un correcto funcionamiento, debemos aprender sobre sistemas distribuidos. 
-
-## Libro
-En Febrero de 2025 el autor original publicó un libro que viene perfecto para acompañar el proceso de desarrollo de un sistema distribuido.
-
-Puedes acceder a el libro [Construyendo sistemas distribuidos](https://www.netmentor.es/libros/construyendo-sistemas-distribuidos) y apoyar su contenido. 
-
-
 
 ## ¿Qué vamos a ver? 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publiser, sagas, service discovery, Eventual consistency, etc.
