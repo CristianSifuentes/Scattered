@@ -19,7 +19,7 @@ public static class LoggerConfigurationExtensions
     {
         return graylogLoggerConfiguration.Enabled
             ? loggerConfiguration.WriteTo.Graylog(graylogLoggerConfiguration.Host, graylogLoggerConfiguration.Port, 
-                TransportType.Udp, graylogLoggerConfiguration.MinimumLevel)
+                TransportType.Udp, minimumLogEventLevel: graylogLoggerConfiguration.MinimumLevel)
             : loggerConfiguration;
     }
     

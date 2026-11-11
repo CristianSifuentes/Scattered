@@ -9,7 +9,7 @@ public class ConsulServiceDiscoveryTest
 {
 
     [Fact]
-    public void WhenGetFullAddressEmpty_Then_Throws()
+    public async Task WhenGetFullAddressEmpty_Then_Throws()
     {
         // arrange
         var serviceKey = "my test service";
@@ -35,7 +35,7 @@ public class ConsulServiceDiscoveryTest
         var act = async () => await service.GetFullAddress(serviceKey);
 
         // assert
-        Assert.ThrowsAsync<ArgumentException>(act);
+        await Assert.ThrowsAsync<ArgumentException>(act);
     }
 
     [Fact]

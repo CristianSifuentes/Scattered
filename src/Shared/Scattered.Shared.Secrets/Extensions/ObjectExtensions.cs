@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Scattered.Shared.Secrets.Extensions;
 
 public static class ObjectExtensions
@@ -9,9 +11,12 @@ public static class ObjectExtensions
 
         foreach (var item in source)
         {
-            someObjectType
-                .GetProperty(item.Key)!
-                .SetValue(someObject, item.Value, null);
+            var property = someObjectType.GetProperty(item.Key)!;
+            // VaultSharp returns the secret values as JsonElement
+            object? value = item.Value is JsonElement jsonElement
+                ? jsonElement.Deserialize(property.PropertyType)
+                : item.Value;
+            property.SetValue(someObject, value, null);
         }
         return someObject;
     }
