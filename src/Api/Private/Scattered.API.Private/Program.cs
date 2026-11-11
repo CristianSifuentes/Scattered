@@ -7,6 +7,7 @@ WebApplication app = DefaultScatteredWebApplication.Create(args, webappBuilder =
         .LoadFromConfig(webappBuilder.Configuration.GetSection("ReverseProxy"));
 
     webappBuilder.Services.AddApiToken(webappBuilder.Configuration);
+    webappBuilder.Services.AddRateLimiter(_ => { });
 });
 
 app.UseApiTokenMiddleware();
