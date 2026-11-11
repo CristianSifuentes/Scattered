@@ -28,7 +28,7 @@ Vamos a ver un sistema distribuido con múltiples características, como pueden 
 
 La arquitectura que vamos a ver es la siguiente:
 
-![ScatteredDiagram](assets/diagram.png)
+![ScatteredDiagram](assets/architecture.svg)
 - Nota: las etiquetas amarillas representan el código ya implementado.
 
 Puedes encontrar el proceso de creación del sistema en [el curso de YouTube del autor original](https://www.youtube.com/playlist?list=PLesmOrW3mp4jpSbdFMtVWINJZ7OLdSASS).
