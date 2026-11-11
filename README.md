@@ -3,6 +3,8 @@
 ![Scattered](assets/scatteredLogo.jpg)
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso, el libro y los artículos enlazados en este documento pertenecen al autor original.
+>
+> **Propósito de esta copia:** este repositorio existe con fines de aprendizaje. Su objetivo es replicar paso a paso el flujo del curso e ir agregando particularidades personales derivadas de ese aprendizaje, por lo que el código puede diferir del proyecto original.
 
 ## ¿Qué es Scattered? 
 
