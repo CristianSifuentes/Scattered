@@ -3,6 +3,7 @@ receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: 0.0.0.0:4317
 
 # Configure exporters
 exporters:
@@ -11,7 +12,7 @@ exporters:
     endpoint: "0.0.0.0:8889"
 
   # log to the console
-  logging:
+  debug:
 
   # Export to zipkin
   zipkin:
@@ -33,12 +34,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, zipkin]
+      exporters: [debug, zipkin]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, prometheus]
+      exporters: [debug, prometheus]
     logs:
       receivers: [otlp]
       processors: []
-      exporters: [logging, file]
+      exporters: [debug, file]

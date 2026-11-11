@@ -116,7 +116,7 @@ services:
       - "8889:8889"   # Prometheus exporter metrics
       - "4317:4317"   # OTLP gRPC receiver
   prometheus:
-    image: bitnami/prometheus
+    image: prom/prometheus
     container_name: prometheus
     volumes:
       - ./tools/telemetry/prometheus.yaml:/etc/prometheus/prometheus.yml
