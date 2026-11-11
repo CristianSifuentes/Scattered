@@ -94,5 +94,14 @@ Para ahorrar tiempo hay un fichero `bash` que ejectua todo `./tools/local-develo
 
 Y luego simplemente ejecuta cada aplicacion de forma individual o en un compound para poder testearlas.
 
+En esta copia hay además un segundo fichero que compila la solución y arranca todos los servicios a la vez (necesitas el SDK de .NET 10):
+
+```bash
+./tools/local-development/up.sh            # infraestructura
+./tools/local-development/run-services.sh  # servicios
+```
+
+Los logs de cada servicio quedan en `tools/local-development/logs` y con `Ctrl+C` se detienen todos.
+
 ## Dale una estrella ⭐
 Si te gusta el proyecto no dudes en darle una estrella, hacer un fork junto a una PR o incluso apoyar económicamente al autor original [donando un café](https://www.buymeacoffee.com/netmentor).
