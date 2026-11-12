@@ -454,6 +454,33 @@ Cada cola tiene además una cola `*.dead-letter` asociada, a la que van los mens
 
 Todos los servicios, además, consultan **Consul** para localizar la infraestructura, leen sus credenciales de **Vault** y envían logs a **Graylog** y telemetría al colector de **OpenTelemetry**; no se dibuja para mantener los diagramas legibles.
 
+#### El patrón productor-consumidor, a gran escala
+
+Toda la mensajería anterior es una aplicación del patrón **productor-consumidor**: separar a quien genera un dato de quien lo procesa, poniendo una cola en medio. La imagen muestra el sistema completo leído de izquierda a derecha; cada círculo es un componente y cada línea es el camino real de un mensaje.
+
+![Patrón productor-consumidor en Scattered](assets/producer-consumer.svg)
+
+**Cómo leer la imagen.** Cada columna es un papel del patrón y cada franja horizontal es un dominio. Las líneas azules son mensajes de dominio (no salen de su franja) y las rosas son mensajes de integración (son las únicas que cruzan de una franja a otra). Los puntos que recorren las líneas indican el sentido del mensaje.
+
+| Pieza del patrón | En Scattered | Qué hace |
+|---|---|---|
+| **Productor** | `API.Public`, `Subscriptions`, `Products.Api.Write`, `Products.Consumer`, `Orders` | Publica el mensaje en un exchange y sigue con su trabajo, sin esperar a nadie. |
+| **Cola (búfer)** | Las colas de RabbitMQ: `subscription-queue`, `product-domain-queue`, `order-domain-queue`, `order-queue` | Guarda cada mensaje hasta que un consumidor lo procesa. |
+| **Consumidor** | `Subscriptions.Consumer`, `Products.Consumer`, `Orders.Consumer` | Toma los mensajes de su cola a su ritmo y ejecuta el handler correspondiente. |
+
+RabbitMQ añade una pieza que el patrón básico no tiene: el **exchange**. El productor no escribe directamente en la cola, sino en un exchange que decide, según la clave de enrutado, a qué colas copiar el mensaje. Eso permite que un mismo mensaje llegue a varios consumidores sin que el productor lo sepa.
+
+**Qué se gana con ello**, visto en este proyecto:
+
+- **Desacoplamiento.** `Products.Api.Write` no sabe que existe `Orders`. Publica que un producto cambió y termina; añadir un nuevo interesado es enlazar otra cola al exchange, sin tocar al productor.
+- **Control de velocidades.** Si `Orders.Consumer` está caído o va lento, los mensajes esperan en `order-queue` y se procesan cuando vuelve. La petición HTTP original ya respondió hace tiempo.
+- **Escalabilidad.** Se pueden arrancar varias instancias de un mismo consumidor sobre la misma cola y RabbitMQ reparte los mensajes entre ellas.
+
+Dos detalles que la imagen deja a la vista:
+
+- `Products.Consumer` aparece en las dos columnas porque es **consumidor y productor a la vez**: consume el mensaje de dominio, actualiza el modelo de lectura y publica el de integración.
+- El punto rojo bajo cada cola es su cola `*.dead-letter`: ahí acaban los mensajes que el consumidor no pudo procesar, para que un fallo no bloquee al resto.
+
 ### 8. Dos flujos explicados paso a paso
 
 **Crear un producto: CQRS y consistencia eventual.** CQRS separa las escrituras de las lecturas en modelos (y aquí también bases de datos) distintos. La escritura se confirma en MySQL y el modelo de lectura en MongoDB se actualiza después mediante un mensaje; durante ese instante la lectura aún no ve el producto, y eso es la *consistencia eventual*.
