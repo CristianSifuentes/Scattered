@@ -6,27 +6,15 @@ Este documento recoge todo lo que se modificó en esta copia para que la aplicac
 
 ## Contenido
 
-- [Resumen](#resumen)
-- [1. Infraestructura local](#1-infraestructura-local)
-- [2. Arreglos de arranque](#2-arreglos-de-arranque)
-- [3. Fase 1: migración a .NET 10](#3-fase-1-migración-a-net-10)
-- [4. Fase 2: dependencias con vulnerabilidades conocidas](#4-fase-2-dependencias-con-vulnerabilidades-conocidas)
-  - [4.1 Paquetes actualizados](#41-paquetes-actualizados)
-  - [4.2 Paquetes fijados explícitamente](#42-paquetes-fijados-explícitamente)
-  - [4.3 Cambios de código](#43-cambios-de-código)
-- [5. Fase 3: actualización de paquetes de bajo esfuerzo](#5-fase-3-actualización-de-paquetes-de-bajo-esfuerzo)
-  - [5.1 Paquetes actualizados](#51-paquetes-actualizados)
-  - [5.2 Cambios de código](#52-cambios-de-código)
-- [6. Script de arranque](#6-script-de-arranque)
-- [Requisito adicional: certificado HTTPS de desarrollo](#requisito-adicional-certificado-https-de-desarrollo)
-- [Estado verificado](#estado-verificado)
-- [Pendiente y limitaciones conocidas](#pendiente-y-limitaciones-conocidas)
+[Resumen](#resumen) · [1. Infraestructura](#1-infraestructura-local) · [2. Arranque](#2-arreglos-de-arranque) · [3. Fase 1: .NET 10](#3-fase-1-migración-a-net-10) · [4. Fase 2: vulnerabilidades](#4-fase-2-dependencias-con-vulnerabilidades-conocidas) · [5. Fase 3: paquetes](#5-fase-3-actualización-de-paquetes-de-bajo-esfuerzo) · [6. Script](#6-script-de-arranque) · [Certificado HTTPS](#requisito-adicional-certificado-https-de-desarrollo) · [Estado verificado](#estado-verificado) · [Pendiente](#pendiente-y-limitaciones-conocidas)
 
 ## Resumen
 
 Entorno en el que se verificó: macOS (Apple Silicon, arm64), SDK de .NET 10.0.403 y Docker 29.9.2.
 
 Los cambios se hicieron en seis pasos, cada uno en su propio commit:
+
+<div style="overflow-x: auto;">
 
 | # | Paso | Commit | Qué resuelve |
 |---|---|---|---|
@@ -37,11 +25,15 @@ Los cambios se hicieron en seis pasos, cada uno en su propio commit:
 | 5 | [Fase 3: paquetes](#5-fase-3-actualización-de-paquetes-de-bajo-esfuerzo) | `378faa5` | Paquetes desactualizados que se podían subir con poco esfuerzo |
 | 6 | [Script de arranque](#6-script-de-arranque) | `b9fbe77` | Arrancar los 10 servicios con un solo comando |
 
+</div>
+
 Los pasos 1 y 2 corrigen problemas que impedían levantar el proyecto tal como estaba. Los pasos 3 a 5 son la migración a .NET 10, dividida en fases para poder verificar cada una por separado.
 
 ## 1. Infraestructura local
 
 Commit `f894488`. Afecta a `docker-compose.yaml` y a los scripts de `tools/`.
+
+<div style="overflow-x: auto;">
 
 | Archivo | Problema | Cambio |
 |---|---|---|
@@ -51,18 +43,26 @@ Commit `f894488`. Afecta a `docker-compose.yaml` y a los scripts de `tools/`.
 | `tools/consul/config.sh` | La CLI de Consul actual rechaza direcciones con esquema (`http://...`), por lo que fallaban 6 de los 11 registros (Vault y todas las APIs) | Esos servicios se registran por la API HTTP de Consul (`PUT /v1/agent/service/register`) mediante la función `register_with_scheme` |
 | `tools/local-development/up.sh`, `tools/vault/config.sh`, `tools/consul/config.sh` | No tenían permiso de ejecución | Se marcan como ejecutables |
 
+</div>
+
 ## 2. Arreglos de arranque
 
 Commit `1391701`. Dos servicios no arrancaban bien con el código original.
+
+<div style="overflow-x: auto;">
 
 | Archivo | Problema | Cambio |
 |---|---|---|
 | `src/Api/Private/Scattered.API.Private/Program.cs` | El gateway privado llamaba a `UseRateLimiter()` sin registrar sus servicios y se caía al iniciar | Se añade `AddRateLimiter` |
 | `src/Services/Subscriptions/Scattered.Services.Subscriptions/Properties/launchSettings.json` | Faltaba la variable `VAULT-TOKEN` que sí tienen los demás proyectos; `/health` devolvía 500 | Se añade `VAULT-TOKEN` al perfil de arranque |
 
+</div>
+
 ## 3. Fase 1: migración a .NET 10
 
 Commit `5da9951`. .NET 8 llegó al final de su soporte, así que la solución se migró a .NET 10 (LTS). No hizo falta cambiar código C# para esta fase.
+
+<div style="overflow-x: auto;">
 
 | Archivo | Cambio |
 |---|---|
@@ -72,6 +72,8 @@ Commit `5da9951`. .NET 8 llegó al final de su soporte, así que la solución se
 | `Scattered - Backup.Services.Products.csproj` (net6.0) | Eliminado. Era un proyecto huérfano, fuera de la solución, que impedía ejecutar `dotnet run --project` sobre la carpeta de `Products.Api.Write` |
 | `src/Shared/Scattered.Shared.Api` (net7.0) | Eliminado. Proyecto huérfano, fuera de la solución |
 
+</div>
+
 ## 4. Fase 2: dependencias con vulnerabilidades conocidas
 
 Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades de los paquetes transitivos. Había 16 paquetes afectados (uno crítico); tras esta fase `dotnet list package --vulnerable --include-transitive` no devuelve ninguno.
@@ -80,13 +82,19 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 
 **Health checks**
 
+<div style="overflow-x: auto;">
+
 | Paquete | Antes | Ahora | Motivo |
 |---|---|---|---|
 | `AspNetCore.HealthChecks.UI`, `.UI.Client`, `.UI.InMemory.Storage` | 6.0.4 | 9.0.0 | Arrastraban `KubernetesClient`, `AutoMapper`, SQLite y JWT vulnerables |
 | `AspNetCore.HealthChecks.MySql` | 6.0.2 | 9.0.0 | Arrastraba `MySqlConnector` vulnerable |
 | `AspNetCore.HealthChecks.MongoDb` | 6.0.2 | 9.0.0 | Requerido por el nuevo driver de MongoDB |
 
+</div>
+
 **Bases de datos**
+
+<div style="overflow-x: auto;">
 
 | Paquete | Antes | Ahora | Motivo |
 |---|---|---|---|
@@ -94,7 +102,11 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 | `Microsoft.EntityFrameworkCore` | 6.0.3 | 10.0.12 | Arrastraba `Microsoft.Extensions.Caching.Memory` vulnerable |
 | `MySql.EntityFrameworkCore` | 6.0.0 | 10.0.12 | Debe coincidir con la versión de EF Core |
 
+</div>
+
 **Observabilidad y descubrimiento de servicios**
+
+<div style="overflow-x: auto;">
 
 | Paquete | Antes | Ahora | Motivo |
 |---|---|---|---|
@@ -103,23 +115,35 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 | `OpenTelemetry.Instrumentation.AspNetCore` | 1.8.1 | 1.21.0 | Ídem |
 | `Consul` | 1.6.10.3 | 1.8.0 | Arrastraba `Newtonsoft.Json` 10.0.3 vulnerable |
 
+</div>
+
 **Plataforma (ASP.NET Core y Microsoft.Extensions)**
+
+<div style="overflow-x: auto;">
 
 | Paquete | Antes | Ahora | Motivo |
 |---|---|---|---|
 | `Microsoft.AspNetCore.Mvc` | 2.2.0 | eliminado | Arrastraba `System.Drawing.Common` (crítica). Se sustituye por `<FrameworkReference Include="Microsoft.AspNetCore.App"/>` en `Scattered.Shared.Communication` |
 | `Microsoft.Extensions.*` (Caching.Memory, Configuration.Abstractions, DependencyInjection, DependencyInjection.Abstractions, Hosting.Abstractions, Http, Options.ConfigurationExtensions) | 2.2.0 / 3.1.3 / 6.0.0 | 10.0.12 | Evitar degradaciones de versión (NU1605) con los paquetes anteriores |
 
+</div>
+
 **Tests**
+
+<div style="overflow-x: auto;">
 
 | Paquete | Antes | Ahora | Motivo |
 |---|---|---|---|
 | `Microsoft.NET.Test.Sdk` | 16.11.0 / 17.4.0 | 18.12.0 | Arrastraba `Newtonsoft.Json` antiguo |
 | `Microsoft.AspNetCore.Mvc.Testing` | 6.0.2 | 10.0.12 | Alineado con .NET 10 |
 
+</div>
+
 ### 4.2 Paquetes fijados explícitamente
 
 Estos paquetes se declaran aunque el código no los usa de forma directa. Sin ellos queda una vulnerabilidad transitiva o algo deja de funcionar.
+
+<div style="overflow-x: auto;">
 
 | Paquete | Versión | Motivo |
 |---|---|---|
@@ -128,9 +152,13 @@ Estos paquetes se declaran aunque el código no los usa de forma directa. Sin el
 | `IdentityModel` | 5.2.0 | `HealthChecks.UI` lo necesita y el `KubernetesClient` fijado ya no lo incluye; sin él el recolector de health checks falla |
 | `Microsoft.EntityFrameworkCore.InMemory` | 10.0.12 | `HealthChecks.UI.InMemory.Storage` trae el proveedor de EF Core 8, incompatible con EF Core 10; sin él los servicios no arrancan |
 
+</div>
+
 ### 4.3 Cambios de código
 
 Cambios que exigieron las nuevas versiones.
+
+<div style="overflow-x: auto;">
 
 | Archivo | Cambio |
 |---|---|
@@ -142,11 +170,15 @@ Cambios que exigieron las nuevas versiones.
 | `src/Shared/Scattered.Shared.Discovery/ConsulServiceDiscovery.cs`, `DiscoveryDependencyInjection.cs` | Ajustes de nulabilidad por las anotaciones de los paquetes nuevos |
 | `src/Tests/Shared/Discovery/.../ConsulServiceDiscoveryTest.cs` | `Consul` 1.8.0 añade una sobrecarga de `Catalog.Service`; los mocks usan `default(CancellationToken)` para evitar la ambigüedad |
 
+</div>
+
 ## 5. Fase 3: actualización de paquetes de bajo esfuerzo
 
 Commit `378faa5`. Paquetes sin vulnerabilidades conocidas pero desactualizados, que se podían subir con cambios pequeños. Los que exigen reescribir código quedaron fuera (ver [Pendiente](#pendiente-y-limitaciones-conocidas)).
 
 ### 5.1 Paquetes actualizados
+
+<div style="overflow-x: auto;">
 
 | Área | Paquete | Antes | Ahora |
 |---|---|---|---|
@@ -164,13 +196,19 @@ Commit `378faa5`. Paquetes sin vulnerabilidades conocidas pero desactualizados, 
 | Tests | `Moq` | 4.17.2 / 4.18.2 | 4.21.0 |
 | Tests | `coverlet.collector` | 3.1.0 | 10.1.0 |
 
+</div>
+
 ### 5.2 Cambios de código
+
+<div style="overflow-x: auto;">
 
 | Archivo | Cambio |
 |---|---|
 | `src/Shared/Scattered.Shared.Secrets/Extensions/ObjectExtensions.cs` | `VaultSharp` devuelve ahora los valores de los secretos como `JsonElement`; se convierten al tipo de la propiedad. Sin este cambio 6 de los 10 servicios no arrancaban |
 | `src/Shared/Scattered.Shared.Logging/Loggers/LoggerConfigurationExtensions.cs` | Cambió la firma de `WriteTo.Graylog`; el nivel mínimo se pasa como argumento con nombre (`minimumLogEventLevel`) |
 | `src/Tests/Shared/Discovery/.../ConsulServiceDiscoveryTest.cs` | El analizador de xunit detectó un `Assert.ThrowsAsync` sin `await`; el test pasa a ser `async Task` |
+
+</div>
 
 ## 6. Script de arranque
 
