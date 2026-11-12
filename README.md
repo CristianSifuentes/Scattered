@@ -1,6 +1,6 @@
 # Scattered
 
-![Scattered](assets/scatteredLogo.jpg)
+![Scattered](assets/scattered-logo.svg)
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
