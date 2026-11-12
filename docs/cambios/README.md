@@ -16,7 +16,7 @@ Los cambios se hicieron en seis pasos, cada uno en su propio commit:
 
 <div style="overflow-x: auto;">
 
-| # | Paso | Commit | Qué resuelve |
+| # | Paso<br><img width="480" height="1" alt=""> | Commit | Qué resuelve<br><img width="480" height="1" alt=""> |
 |---|---|---|---|
 | 1 | [Infraestructura local](#1-infraestructura-local) | `f894488` | `docker-compose up` abortaba y la configuración de Consul fallaba a medias |
 | 2 | [Arreglos de arranque](#2-arreglos-de-arranque) | `1391701` | El gateway privado se caía al iniciar y Subscriptions devolvía 500 en `/health` |
@@ -35,7 +35,7 @@ Commit `f894488`. Afecta a `docker-compose.yaml` y a los scripts de `tools/`.
 
 <div style="overflow-x: auto;">
 
-| Archivo | Problema | Cambio |
+| Archivo<br><img width="320" height="1" alt=""> | Problema<br><img width="320" height="1" alt=""> | Cambio<br><img width="320" height="1" alt=""> |
 |---|---|---|
 | `docker-compose.yaml` | La imagen `bitnami/prometheus` ya no se publica en Docker Hub y abortaba todo el `docker-compose up` | Se usa la imagen oficial `prom/prometheus` |
 | `tools/telemetry/otel-collector-config.yaml` | El colector actual eliminó el exportador `logging` y se caía al arrancar | Se sustituye por el exportador `debug` en los tres pipelines |
@@ -51,10 +51,10 @@ Commit `1391701`. Dos servicios no arrancaban bien con el código original.
 
 <div style="overflow-x: auto;">
 
-| Archivo | Problema | Cambio |
+| Archivo<br><img width="320" height="1" alt=""> | Problema<br><img width="320" height="1" alt=""> | Cambio<br><img width="320" height="1" alt=""> |
 |---|---|---|
-| `src/Api/Private/Scattered.API.Private/Program.cs` | El gateway privado llamaba a `UseRateLimiter()` sin registrar sus servicios y se caía al iniciar | Se añade `AddRateLimiter` |
-| `src/Services/Subscriptions/Scattered.Services.Subscriptions/Properties/launchSettings.json` | Faltaba la variable `VAULT-TOKEN` que sí tienen los demás proyectos; `/health` devolvía 500 | Se añade `VAULT-TOKEN` al perfil de arranque |
+| `src/Api/Private/Scattered.API.Private/`<br>`Program.cs` | El gateway privado llamaba a `UseRateLimiter()` sin registrar sus servicios y se caía al iniciar | Se añade `AddRateLimiter` |
+| `src/Services/Subscriptions/`<br>`Scattered.Services.Subscriptions/Properties/`<br>`launchSettings.json` | Faltaba la variable `VAULT-TOKEN` que sí tienen los demás proyectos; `/health` devolvía 500 | Se añade `VAULT-TOKEN` al perfil de arranque |
 
 </div>
 
@@ -64,7 +64,7 @@ Commit `5da9951`. .NET 8 llegó al final de su soporte, así que la solución se
 
 <div style="overflow-x: auto;">
 
-| Archivo | Cambio |
+| Archivo<br><img width="480" height="1" alt=""> | Cambio<br><img width="480" height="1" alt=""> |
 |---|---|
 | `GlobalSettings.msbuild` y los 20 `.csproj` que lo declaraban | `TargetFramework` pasa de `net8.0` a `net10.0` |
 | `GlobalSettings.msbuild` | Se elimina el `LangVersion` fijado en `12.0`; se usa la versión de C# que trae el SDK |
@@ -84,7 +84,7 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 
 <div style="overflow-x: auto;">
 
-| Paquete | Antes | Ahora | Motivo |
+| Paquete<br><img width="480" height="1" alt=""> | Antes | Ahora | Motivo<br><img width="480" height="1" alt=""> |
 |---|---|---|---|
 | `AspNetCore.HealthChecks.UI`, `.UI.Client`, `.UI.InMemory.Storage` | 6.0.4 | 9.0.0 | Arrastraban `KubernetesClient`, `AutoMapper`, SQLite y JWT vulnerables |
 | `AspNetCore.HealthChecks.MySql` | 6.0.2 | 9.0.0 | Arrastraba `MySqlConnector` vulnerable |
@@ -96,7 +96,7 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 
 <div style="overflow-x: auto;">
 
-| Paquete | Antes | Ahora | Motivo |
+| Paquete<br><img width="480" height="1" alt=""> | Antes | Ahora | Motivo<br><img width="480" height="1" alt=""> |
 |---|---|---|---|
 | `MongoDB.Driver` | 2.19.0 | 3.13.0 | Arrastraba `Snappier` y `SharpCompress` vulnerables |
 | `Microsoft.EntityFrameworkCore` | 6.0.3 | 10.0.12 | Arrastraba `Microsoft.Extensions.Caching.Memory` vulnerable |
@@ -108,7 +108,7 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 
 <div style="overflow-x: auto;">
 
-| Paquete | Antes | Ahora | Motivo |
+| Paquete<br><img width="480" height="1" alt=""> | Antes | Ahora | Motivo<br><img width="480" height="1" alt=""> |
 |---|---|---|---|
 | `OpenTelemetry.Exporter.Console`, `OpenTelemetry.Exporter.OpenTelemetryProtocol` | 1.3.0 | 1.21.0 | `OpenTelemetry.Api` vulnerable |
 | `OpenTelemetry.Extensions.Hosting` | 1.0.0-rc9.4 | 1.21.0 | Ídem |
@@ -121,7 +121,7 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 
 <div style="overflow-x: auto;">
 
-| Paquete | Antes | Ahora | Motivo |
+| Paquete<br><img width="480" height="1" alt=""> | Antes | Ahora | Motivo<br><img width="480" height="1" alt=""> |
 |---|---|---|---|
 | `Microsoft.AspNetCore.Mvc` | 2.2.0 | eliminado | Arrastraba `System.Drawing.Common` (crítica). Se sustituye por `<FrameworkReference Include="Microsoft.AspNetCore.App"/>` en `Scattered.Shared.Communication` |
 | `Microsoft.Extensions.*` (Caching.Memory, Configuration.Abstractions, DependencyInjection, DependencyInjection.Abstractions, Hosting.Abstractions, Http, Options.ConfigurationExtensions) | 2.2.0 / 3.1.3 / 6.0.0 | 10.0.12 | Evitar degradaciones de versión (NU1605) con los paquetes anteriores |
@@ -132,7 +132,7 @@ Commit `f535c42`. Al compilar para .NET 10 el SDK reporta las vulnerabilidades d
 
 <div style="overflow-x: auto;">
 
-| Paquete | Antes | Ahora | Motivo |
+| Paquete<br><img width="480" height="1" alt=""> | Antes | Ahora | Motivo<br><img width="480" height="1" alt=""> |
 |---|---|---|---|
 | `Microsoft.NET.Test.Sdk` | 16.11.0 / 17.4.0 | 18.12.0 | Arrastraba `Newtonsoft.Json` antiguo |
 | `Microsoft.AspNetCore.Mvc.Testing` | 6.0.2 | 10.0.12 | Alineado con .NET 10 |
@@ -145,7 +145,7 @@ Estos paquetes se declaran aunque el código no los usa de forma directa. Sin el
 
 <div style="overflow-x: auto;">
 
-| Paquete | Versión | Motivo |
+| Paquete<br><img width="480" height="1" alt=""> | Versión | Motivo<br><img width="480" height="1" alt=""> |
 |---|---|---|
 | `MySqlConnector` | 2.6.2 | La versión que trae `HealthChecks.MySql` 9.0.0 sigue siendo vulnerable (GHSA-473q-m89c-ghf8) |
 | `KubernetesClient` | 17.0.14 | La versión que trae `HealthChecks.UI` 9.0.0 sigue siendo vulnerable (GHSA-w7r3-mgwf-4mqq) |
@@ -160,15 +160,15 @@ Cambios que exigieron las nuevas versiones.
 
 <div style="overflow-x: auto;">
 
-| Archivo | Cambio |
+| Archivo<br><img width="480" height="1" alt=""> | Cambio<br><img width="480" height="1" alt=""> |
 |---|---|
-| `src/Shared/Scattered.Shared.Setup/Observability/OpenTelemetry.cs` | `AddOpenTelemetryTracing` y `AddOpenTelemetryMetrics` ya no existen; se usa `AddOpenTelemetry().WithTracing(...)` y `.WithMetrics(...)` |
-| `src/Shared/Shared.Databases/Scattered.Shared.Databases.MongoDb/MongoDbDependencyInjection.cs` | Nueva firma de `AddMongoDb` en el health check (recibe una factoría de `IMongoClient`) |
+| `src/Shared/Scattered.Shared.Setup/`<br>`Observability/OpenTelemetry.cs` | `AddOpenTelemetryTracing` y `AddOpenTelemetryMetrics` ya no existen; se usa `AddOpenTelemetry().WithTracing(...)` y `.WithMetrics(...)` |
+| `src/Shared/Shared.Databases/`<br>`Scattered.Shared.Databases.MongoDb/`<br>`MongoDbDependencyInjection.cs` | Nueva firma de `AddMongoDb` en el health check (recibe una factoría de `IMongoClient`) |
 | Ídem | Se registra `GuidSerializer(GuidRepresentation.CSharpLegacy)`: el driver 3.x exige indicar la representación de `Guid`, y esta es la que usaba el driver 2.x por defecto |
 | Ídem | Se registra un `ObjectSerializer` que permite los tipos `Scattered.*`. Sin él, guardar eventos en el event store fallaba con error 500 al crear un pedido (este fallo ya existía antes de la actualización) |
-| `src/Shared/Shared.Communication/Scattered.Shared.Communication.RabbitMQ/RabbitMQDependencyInjection.cs` | Se elimina un `using Microsoft.AspNetCore.JsonPatch.Adapters` sin uso, que dependía del paquete MVC 2.2 |
-| `src/Shared/Scattered.Shared.Discovery/ConsulServiceDiscovery.cs`, `DiscoveryDependencyInjection.cs` | Ajustes de nulabilidad por las anotaciones de los paquetes nuevos |
-| `src/Tests/Shared/Discovery/.../ConsulServiceDiscoveryTest.cs` | `Consul` 1.8.0 añade una sobrecarga de `Catalog.Service`; los mocks usan `default(CancellationToken)` para evitar la ambigüedad |
+| `src/Shared/Shared.Communication/`<br>`Scattered.Shared.Communication.RabbitMQ/`<br>`RabbitMQDependencyInjection.cs` | Se elimina un `using Microsoft.AspNetCore.JsonPatch.Adapters` sin uso, que dependía del paquete MVC 2.2 |
+| `src/Shared/Scattered.Shared.Discovery/`<br>`ConsulServiceDiscovery.cs`, `DiscoveryDependencyInjection.cs` | Ajustes de nulabilidad por las anotaciones de los paquetes nuevos |
+| `src/Tests/Shared/Discovery/.../`<br>`ConsulServiceDiscoveryTest.cs` | `Consul` 1.8.0 añade una sobrecarga de `Catalog.Service`; los mocks usan `default(CancellationToken)` para evitar la ambigüedad |
 
 </div>
 
@@ -180,7 +180,7 @@ Commit `378faa5`. Paquetes sin vulnerabilidades conocidas pero desactualizados, 
 
 <div style="overflow-x: auto;">
 
-| Área | Paquete | Antes | Ahora |
+| Área<br><img width="480" height="1" alt=""> | Paquete<br><img width="480" height="1" alt=""> | Antes | Ahora |
 |---|---|---|---|
 | Gateways | `Yarp.ReverseProxy` | 1.1.2 | 2.3.0 |
 | Logging | `Serilog` | 2.10.0 | 4.4.0 |
@@ -202,11 +202,11 @@ Commit `378faa5`. Paquetes sin vulnerabilidades conocidas pero desactualizados, 
 
 <div style="overflow-x: auto;">
 
-| Archivo | Cambio |
+| Archivo<br><img width="480" height="1" alt=""> | Cambio<br><img width="480" height="1" alt=""> |
 |---|---|
-| `src/Shared/Scattered.Shared.Secrets/Extensions/ObjectExtensions.cs` | `VaultSharp` devuelve ahora los valores de los secretos como `JsonElement`; se convierten al tipo de la propiedad. Sin este cambio 6 de los 10 servicios no arrancaban |
-| `src/Shared/Scattered.Shared.Logging/Loggers/LoggerConfigurationExtensions.cs` | Cambió la firma de `WriteTo.Graylog`; el nivel mínimo se pasa como argumento con nombre (`minimumLogEventLevel`) |
-| `src/Tests/Shared/Discovery/.../ConsulServiceDiscoveryTest.cs` | El analizador de xunit detectó un `Assert.ThrowsAsync` sin `await`; el test pasa a ser `async Task` |
+| `src/Shared/Scattered.Shared.Secrets/`<br>`Extensions/ObjectExtensions.cs` | `VaultSharp` devuelve ahora los valores de los secretos como `JsonElement`; se convierten al tipo de la propiedad. Sin este cambio 6 de los 10 servicios no arrancaban |
+| `src/Shared/Scattered.Shared.Logging/Loggers/`<br>`LoggerConfigurationExtensions.cs` | Cambió la firma de `WriteTo.Graylog`; el nivel mínimo se pasa como argumento con nombre (`minimumLogEventLevel`) |
+| `src/Tests/Shared/Discovery/.../`<br>`ConsulServiceDiscoveryTest.cs` | El analizador de xunit detectó un `Assert.ThrowsAsync` sin `await`; el test pasa a ser `async Task` |
 
 </div>
 
