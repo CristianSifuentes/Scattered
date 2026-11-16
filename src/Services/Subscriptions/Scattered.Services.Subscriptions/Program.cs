@@ -1,8 +1,3 @@
-WebApplication app = DefaultScatteredWebApplication.Create(args, webappBuilder =>
-{
-    webappBuilder.Services.AddServiceBusIntegrationPublisher(webappBuilder.Configuration);
-});
+WebApplication app = DefaultScatteredWebApplication.Create();
 
 DefaultScatteredWebApplication.Run(app);
-
-public partial class Program { }

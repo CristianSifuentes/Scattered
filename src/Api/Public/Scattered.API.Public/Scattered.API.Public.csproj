@@ -1,22 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-<!--    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <RootNamespace>Scattered.API.Public</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <!--Reference to the shared setup project and the global usings-->
-    <ProjectReference Include="..\..\..\Services\Subscriptions\Scattered.Services.Subscriptions.Dtos\Scattered.Services.Subscriptions.Dtos.csproj" />
     <ProjectReference Include="..\..\..\Shared\Scattered.Shared.Setup\Scattered.Shared.Setup.csproj" />
     <Compile Include="..\..\..\Shared\Scattered.Shared.Setup\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
-  </ItemGroup>
 
 </Project>

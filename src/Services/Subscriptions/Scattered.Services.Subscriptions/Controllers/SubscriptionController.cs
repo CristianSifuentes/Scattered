@@ -1,6 +1,4 @@
-﻿using System.Net;
-using Scattered.Services.Subscriptions.Dtos;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Scattered.Services.Subscriptions.Controllers;
 
@@ -8,26 +6,19 @@ namespace Scattered.Services.Subscriptions.Controllers;
 [Route("[controller]")]
 public class SubscriptionController
 {
-    private readonly IIntegrationMessagePublisher _integrationMessagePublisher;
-
-    public SubscriptionController(IIntegrationMessagePublisher integrationMessagePublisher)
-    {
-        _integrationMessagePublisher = integrationMessagePublisher;
-    }
-
     [HttpPost(Name = "subscribe")]
-    [ProducesResponseType(typeof(ResultDto<bool>), (int)HttpStatusCode.Accepted)]
-    public async Task<IActionResult> Subscribe(SubscriptionDto subscription)
+    public Task<bool> Subscribe(SubscriptionDto subscription)
     {
-        await _integrationMessagePublisher.Publish(subscription);
-        return true.Success().ToActionResult();
+        //TODO: logic 
+        return Task.FromResult(true);
     }
 
     [HttpDelete(Name = "unsubscribe")]
-    [ProducesResponseType(typeof(ResultDto<bool>), (int)HttpStatusCode.Accepted)]
-    public Task<IActionResult> Unsubscribe(SubscriptionDto subscription)
+    public Task<bool> Unsubscribe(SubscriptionDto subscription)
     {
-        return true.Success().Async().ToActionResult();
+        //TODO: logic 
+        return Task.FromResult(true);
     }
 }
 
+public record SubscriptionDto(string email);
