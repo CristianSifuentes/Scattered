@@ -1,0 +1,165 @@
+# Flujo paso a paso: `features/flow1`
+
+Esta rama es el punto de partida para replicar el curso de Distribt capítulo a capítulo dentro de Scattered, y entender qué cambió entre cada rama del proyecto original hasta llegar a la versión final (`main`).
+
+[← Volver al README principal](../../README.md)
+
+## Contenido
+
+[Origen](#origen) · [Qué contiene](#qué-contiene) · [Cómo ejecutarla](#cómo-ejecutarla) · [Particularidades](#particularidades) · [Ramas del curso](#ramas-del-curso) · [Cómo avanzar al siguiente capítulo](#cómo-avanzar-al-siguiente-capítulo)
+
+## Origen
+
+| | |
+|---|---|
+| Proyecto original | [ElectNewt/Distribt](https://github.com/ElectNewt/Distribt) |
+| Rama de origen | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) |
+| Commit de origen | `051e361` add abstraction on minimal api and webapi (26-dic-2021) |
+| Cambios aplicados | Renombrado de `Distribt` a `Scattered` en carpetas, proyectos, namespaces y clases (`DefaultDistribtWebApplication` → `DefaultScatteredWebApplication`), y nota de créditos en el README |
+
+Fuera del renombrado, el código es idéntico al original.
+
+## Qué contiene
+
+**En esta versión todo es esqueleto.** Los controladores devuelven datos fijos (`TODO`), no hay base de datos, y las APIs pública y privada solo dicen "Hello World!". Todavía no reenvían nada; eso llega en el capítulo 2 con YARP.
+
+### Proyectos (9, todos en .NET 6)
+
+| Proyecto | Qué hace hoy | URL local |
+|---|---|---|
+| `Scattered.API.Public` | Minimal API: `GET /` → `Hello World!` | https://localhost:7283 |
+| `Scattered.API.Private` | Minimal API: `GET /` → `Hello World!` | https://localhost:7022 |
+| `Scattered.Services.Emails` | `POST /email` devuelve siempre `true`, sin enviar nada | https://localhost:7273 |
+| `Scattered.Services.Orders` | `GET /order/{id}` devuelve el mismo id; `POST /order` devuelve un GUID nuevo | https://localhost:7077 |
+| `Scattered.Services.Products` | `GET /product/{id}` devuelve nombre y descripción `"TODO"` | https://localhost:7185 |
+| `Scattered.Services.Subscriptions` | `POST` y `DELETE /subscription` devuelven siempre `true` | https://localhost:7197 |
+| `Scattered.Shared.Api` | `DefaultScatteredWebApplication`: arranque común (controllers, Swagger, HTTPS, autorización) | — |
+| `Scattered.Shared.Setup` | `GlobalUsings.cs` compartido por todos los proyectos | — |
+| `Scattered - Backup.Services.Products` | Proyecto huérfano heredado del original, fuera de la solución | — |
+
+Cada servicio expone Swagger en `/swagger` (solo en entorno `Development`).
+
+### Idea clave del capítulo
+
+`DefaultScatteredWebApplication` centraliza la configuración que comparten todos los servicios. Cada `Program.cs` queda en tres líneas:
+
+```csharp
+WebApplication app = DefaultScatteredWebApplication.Create();
+app.MapGet("/", () => "Hello World!");
+DefaultScatteredWebApplication.Run(app);
+```
+
+`Create` acepta un `Action<WebApplicationBuilder>` opcional para que cada servicio añada lo suyo. Ese punto de extensión se usa por primera vez en el capítulo 2.
+
+### Lo que todavía no existe
+
+- Comunicación entre servicios: ni HTTP entre ellos ni mensajería.
+- Persistencia: no hay bases de datos.
+- Infraestructura: `docker-compose.yaml` solo define RabbitMQ, y ningún servicio lo usa todavía.
+- Tests y `GlobalSettings.msbuild`: aparecen en capítulos posteriores.
+
+## Cómo ejecutarla
+
+Requisitos: SDK de .NET 10 y el certificado HTTPS de desarrollo de confianza (`dotnet dev-certs https --trust`, una sola vez).
+
+```bash
+dotnet build Scattered.sln
+```
+
+Compila con 0 errores y avisos `NETSDK1138`, que solo indican que .NET 6 ya no tiene soporte.
+
+Para ejecutar los servicios sin instalar el runtime de .NET 6, usa `DOTNET_ROLL_FORWARD=Major`, que los hace correr sobre .NET 10:
+
+```bash
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Public/Scattered.API.Public
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Private/Scattered.API.Private
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Emails/Scattered.Services.Emails
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Orders/Scattered.Services.Orders
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Products/Scattered.Services.Products/Scattered.Services.Products.csproj
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Subscriptions/Scattered.Services.Subscriptions
+```
+
+Para detenerlos todos: `pkill -f 'Scattered\.(API|Services)'`.
+
+Verificado: los 6 servicios arrancan y responden en las URLs de la tabla anterior.
+
+## Particularidades
+
+- **.NET 6 sin soporte.** El código se mantiene en `net6.0` para ser fiel al curso. La migración a .NET 10 ya está hecha en `main` y se puede repetir al final del flujo.
+- **`Scattered.sln` y no `.slnx`.** El formato `.slnx` llegó al original en el último commit de `main` (`6be727b`).
+- **Products necesita la ruta al `.csproj`.** Su carpeta contiene también `Scattered - Backup.Services.Products.csproj`, así que `dotnet run --project <carpeta>` falla con *"contiene más de un archivo de proyecto"*. Se mantiene por fidelidad al original; `main` lo eliminó.
+- **Puertos aleatorios.** Los puertos de `launchSettings.json` son los que generó Visual Studio. El capítulo 2 los cambia por un esquema fijo (`50X20` HTTPS / `50X10` HTTP).
+- **Carpetas vacías al cambiar desde `main`.** Al pasar a esta rama quedan en disco carpetas de proyectos de `main` que solo contienen `bin/` y `obj/` (ignorados por Git). Se limpian con `git clean -ndX` (vista previa) y `git clean -fdX`.
+- **Sin historial común con Distribt.** Scattered empezó con un `git init` propio, así que Git no relaciona sus commits con los del original. Para comparar se usa el contenido (ver más abajo).
+
+## Ramas del curso
+
+Ramas del proyecto original en orden. Cada una corresponde a un vídeo o artículo del curso.
+
+| # | Rama original | Commit | Fecha | Qué añade |
+|---|---|---|---|---|
+| 1 | `01-Introduccion` | `051e361` | 2021-12-26 | Esqueleto de APIs y microservicios **← esta rama** |
+| 2 | `02-patron-api-gateway` | `fbd27a2` | 2022-01-07 | API Gateway con YARP |
+| 3–4 | `03-04-Producers-consumers-RabbitMQ` | `0da6850` | 2022-01-19 | Productor/consumidor con RabbitMQ |
+| 5 | `05-Gestion-credenciales` | `972c150` | 2022-01-31 | Secretos con Vault |
+| 6 | `06-Service-discovery-registry` | `f596ee4` | 2022-02-07 | Service discovery con Consul |
+| 7 | `07-Logs-en-la-nube` | `53d0830` | 2022-02-27 | Logs con Serilog y Graylog |
+| 8 | `08-CQRS` | `53d17af` | 2022-03-19 | CQRS en Products |
+| 9 | `09-Event-sourcing` | `66a0e62` | 2022-04-25 | Event Sourcing con MongoDB |
+| 10 | `10-Consistencia-eventual` | `66a0e62` | 2022-04-25 | Mismo commit que la 09 |
+| 11 | `11-unificar-respuestas-api` | `92de34f` | 2022-05-19 | Respuestas de API unificadas con ROP |
+| 12 | `12-Saga` | `0e5e34a` | 2022-06-06 | Patrón SAGA |
+| 13 | `13-Health-Checks` | `c46a5bb` | 2022-06-09 | Health checks |
+| 14 | `14-monitorizacion-sistemas-distribuidos` | `14e02ef` | 2022-06-26 | OpenTelemetry, Prometheus, Grafana y Zipkin |
+| 15 | `15-Api-key` | `21bbc57` | 2022-11-14 | API Key |
+| 16 | `16-rate-limiting` | `4fd8e17` | 2022-11-24 | Rate limiting (y paso a .NET 7) |
+| 17 | `17-Aspire-version2023` | `d44834d` | 2024-01-06 | .NET Aspire (rama aparte, no llegó a `main`) |
+| — | `main` | `6be727b` | 2026-09-26 | Versión final en .NET 8 y `.slnx`; punto de partida de Scattered `main` |
+
+El original tiene además ramas de experimentos (`ai-test/*`, `codex/*`, `copilot/*`, `GraphQL-Example`, etc.) que no forman parte del curso.
+
+## Cómo avanzar al siguiente capítulo
+
+### 1. Ver qué cambió en el original entre dos ramas
+
+Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrigin/Distribt`):
+
+```bash
+git fetch origin
+git log --oneline origin/01-Introduccion..origin/02-patron-api-gateway
+git diff --stat  origin/01-Introduccion origin/02-patron-api-gateway
+git diff         origin/01-Introduccion origin/02-patron-api-gateway
+```
+
+### 2. Aplicar ese cambio en Scattered
+
+Cada capítulo va en su propio commit sobre esta rama (o en una rama `features/flowN` nueva a partir de la anterior). El diff del original nombra todo `Distribt`, así que hay que adaptarlo:
+
+```bash
+cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
+git diff origin/01-Introduccion origin/02-patron-api-gateway \
+  | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
+  > /tmp/02.patch
+
+cd ~/Documents/workspace/NET/Scattered
+git apply --check /tmp/02.patch   # comprobar que aplica limpio
+git apply /tmp/02.patch
+```
+
+Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
+
+### 3. Verificar antes de pasar al siguiente
+
+- `dotnet build Scattered.sln` sin errores.
+- Los servicios arrancan y las funcionalidades nuevas del capítulo responden.
+- A partir del capítulo 3 hace falta la infraestructura de `docker-compose.yaml` (RabbitMQ, y después Vault, Consul, Graylog…). Las imágenes de 2022 pueden no existir ya o haber cambiado; `docs/cambios/README.md` en `main` documenta los arreglos que hicieron falta para la versión final.
+
+### 4. Comparar con la versión final
+
+Para ver cuánto falta para llegar a `main` de Scattered:
+
+```bash
+git diff -M --stat features/flow1 main
+```
+
+`-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.

@@ -1,10 +1,10 @@
 # Scattered
 
-![Scattered](assets/scatteredLogo.jpg)
+![Scattered](assets/Scattered.svg)
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow1`)** contiene el código de la rama [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) del proyecto original (commit `051e361`), renombrado de Distribt a Scattered. Es el punto de partida para replicar el curso paso a paso.
+> **Esta rama (`features/flow1`)** contiene el código de la rama [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) del proyecto original (commit `051e361`), renombrado de Distribt a Scattered. Es el punto de partida para replicar el curso paso a paso. Qué contiene, cómo ejecutarla y cómo avanzar al siguiente capítulo: **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## ¿Qué es Scattered? 
 
