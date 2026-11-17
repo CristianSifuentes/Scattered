@@ -31,7 +31,7 @@ Fuera del renombrado, el código es idéntico al original.
 | `Scattered.API.Private` | Minimal API: `GET /` → `Hello World!` | https://localhost:7022 |
 | `Scattered.Services.Emails` | `POST /email` devuelve siempre `true`, sin enviar nada | https://localhost:7273 |
 | `Scattered.Services.Orders` | `GET /order/{id}` devuelve el mismo id; `POST /order` devuelve un GUID nuevo | https://localhost:7077 |
-| `Scattered.Services.Products` | `GET /product/{id}` devuelve nombre y descripción `"TODO"` | https://localhost:7185 |
+| `Scattered.Services.Products` | `GET /product/{id}` devuelve nombre y descripción `"TODO"`; `POST /product` devuelve siempre `true` | https://localhost:7185 |
 | `Scattered.Services.Subscriptions` | `POST` y `DELETE /subscription` devuelven siempre `true` | https://localhost:7197 |
 | `Scattered.Shared.Api` | `DefaultScatteredWebApplication`: arranque común (controllers, Swagger, HTTPS, autorización) | — |
 | `Scattered.Shared.Setup` | `GlobalUsings.cs` compartido por todos los proyectos | — |
