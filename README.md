@@ -4,18 +4,43 @@
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow1`)** contiene el código de la rama [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) del proyecto original (commit `051e361`), renombrado de Distribt a Scattered. Es el punto de partida para replicar el curso paso a paso. Qué contiene, cómo ejecutarla y cómo avanzar al siguiente capítulo: **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow2`)** replica la rama [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) del proyecto original (commit `fbd27a2`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow1` |
-| Capítulo del curso | 1 · Introducción |
-| Rama original | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) (`051e361`) |
-| Qué hay | Esqueleto: 2 APIs *Minimal API* y 4 microservicios *Web API* con datos fijos, sobre un arranque común (`DefaultScatteredWebApplication`) |
-| Qué falta | Comunicación entre servicios, persistencia e infraestructura |
-| Siguiente capítulo | 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP (`02-patron-api-gateway`) |
+| Rama | `features/flow2` (nace de `features/flow1`) |
+| Capítulo del curso | 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) |
+| Rama original | [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) (`fbd27a2`) |
+| Qué hay | 2 API Gateways con YARP que enrutan hacia Orders y Products, y 4 microservicios *Web API* con datos fijos en puertos fijos |
+| Qué falta | Comunicación entre microservicios, mensajería, persistencia e infraestructura |
+| Guía del capítulo | [docs/flow/flow2.md](docs/flow/flow2.md) |
+| Siguiente capítulo | 3–4 · [Producers/Consumers](https://www.netmentor.es/entrada/patron-productor-consumidor) con RabbitMQ (`03-04-Producers-consumers-RabbitMQ`) |
+
+## Qué cambió en este capítulo
+
+Respecto a `features/flow1` ([capítulo 1](docs/flow/flow1.md)), las APIs pública y privada dejan de ser un `Hello World!` y pasan a ser **API Gateways**: el cliente ya no necesita conocer el puerto de cada microservicio, solo el del gateway.
+
+| Cambio | Dónde | Para qué |
+|---|---|---|
+| Paquete `Yarp.ReverseProxy` | `.csproj` de los dos gateways | Reverse proxy de Microsoft |
+| `AddReverseProxy().LoadFromConfig(...)` y `MapReverseProxy()` | `Program.cs` de los dos gateways | Usa por primera vez el punto de extensión de `DefaultScatteredWebApplication.Create` |
+| Sección `ReverseProxy` (Routes + Clusters) | `appsettings.json` de los dos gateways | Público: `/order-ms/*` → Orders, `/product-ms/*` → Products. Privado: `/reports/*` → Orders |
+| Puertos fijos `50X20` HTTPS / `50X10` HTTP | `launchSettings.json` de los 4 servicios | Los clusters necesitan direcciones estables (Emails 501x0, Orders 502x0, Products 503x0, Subscriptions 504x0) |
+| `AddRouting(LowercaseUrls = true)` | `DefaultScatteredWebApplication` | URLs generadas en minúsculas (Swagger: `/order` en lugar de `/Order`) |
+
+```text
+Antes (capítulo 1)                      Ahora (capítulo 2)
+cliente ──▶ :7077 Orders                cliente ──▶ :7283 /order-ms/order/{id}
+cliente ──▶ :7185 Products                           └─ YARP ──▶ :50220 Orders /order/{id}
+cliente ──▶ :7283 "Hello World!"        cliente ──▶ :7283 /product-ms/product/{id}
+                                                     └─ YARP ──▶ :50320 Products /product/{id}
+                                        tenant  ──▶ :7022 /reports/order/{id}
+                                                     └─ YARP ──▶ :50220 Orders /order/{id}
+```
+
+Los controllers no cambian: el gateway solo cambia el camino. Subscriptions y Emails no se exponen (la suscripción llegará por mensajería en el capítulo 3–4). Única diferencia con el original: YARP 1.1.2 en lugar de 1.0.0, que tiene dos vulnerabilidades conocidas. Detalle de cada cambio, flujo end to end y casos límite en **[docs/flow/flow2.md](docs/flow/flow2.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -29,11 +54,12 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama:
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow2`):
 
 ![ScatteredDiagram](assets/diagram.png)
 
-- Las cajas con borde continuo existen en el código; las de borde discontinuo y todas las flechas son el objetivo, todavía no existen.
+- Las cajas con borde continuo existen en el código; las de borde discontinuo son el objetivo y todavía no existen.
+- Las flechas continuas son conexiones que ya funcionan (las rutas de los gateways); las discontinuas, conexiones planificadas.
 - Las etiquetas amarillas representan el código ya implementado; las grises indican en qué capítulo llega cada pieza.
 - La fuente editable del diagrama es [`assets/architecture.svg`](assets/architecture.svg).
 
@@ -45,8 +71,8 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 
 Cada capítulo se replica en su propia rama `features/flowN`. Marcado = ya replicado en Scattered.
 
-- [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET **← esta rama**
-- [ ] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP
+- [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
+- [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md) **← esta rama**
 - [ ] 3–4 · [Producers/Consumers](https://www.netmentor.es/entrada/patron-productor-consumidor) para la comunicación asíncrona [con RabbitMQ](https://www.netmentor.es/entrada/rabbitmq-comunicacion-asincrona)
 - [ ] 5 · [Gestión de credenciales](https://www.netmentor.es/entrada/gestion-credenciales-vault) con Vault
 - [ ] 6 · [Service discovery / registry](https://www.netmentor.es/entrada/service-registry-discovery-consul) con Consul
@@ -72,29 +98,36 @@ Nota: técnicamente cada carpeta representa un dominio y podría ser su propio r
 Scattered/
 ├── src/
 │   ├── Api/
-│   │   ├── Public/Scattered.API.Public       Minimal API: GET / → "Hello World!"
-│   │   └── Private/Scattered.API.Private     Minimal API: GET / → "Hello World!"
+│   │   ├── Public/Scattered.API.Public       Gateway YARP :7283  /order-ms/* · /product-ms/*
+│   │   └── Private/Scattered.API.Private     Gateway YARP :7022  /reports/*
 │   ├── Services/
-│   │   ├── Emails/Scattered.Services.Emails                POST /email
-│   │   ├── Orders/Scattered.Services.Orders                GET /order/{id} · POST /order
-│   │   ├── Products/Scattered.Services.Products            GET /product/{id} · POST /product
-│   │   └── Subscriptions/Scattered.Services.Subscriptions  POST · DELETE /subscription
+│   │   ├── Emails/Scattered.Services.Emails                :50120  POST /email
+│   │   ├── Orders/Scattered.Services.Orders                :50220  GET /order/{id} · POST /order
+│   │   ├── Products/Scattered.Services.Products            :50320  GET /product/{id} · POST /product
+│   │   └── Subscriptions/Scattered.Services.Subscriptions  :50420  POST · DELETE /subscription
 │   └── Shared/
 │       ├── Scattered.Shared.Api      DefaultScatteredWebApplication: arranque común
 │       └── Scattered.Shared.Setup    GlobalUsings.cs enlazado en cada proyecto
-├── docs/flow/                Guía del flujo paso a paso
+├── docs/flow/                Guía del flujo paso a paso, un archivo por capítulo
 ├── assets/                   Imágenes de este README
 ├── docker-compose.yaml       Solo RabbitMQ (aún sin uso)
 └── Scattered.sln             Solución (.NET 6)
 ```
 
-* **Api**: las futuras API Gateways. Hoy solo responden `Hello World!`; el enrutado con YARP llega en el capítulo 2.
+* **Api**: los API Gateways. Reenvían las peticiones a los microservicios con YARP; las rutas están en su `appsettings.json`.
 * **Services**: los microservicios. Cada controlador devuelve datos fijos (`TODO`), sin base de datos.
-* **Shared**: código común. `DefaultScatteredWebApplication` deja cada `Program.cs` en tres líneas:
+* **Shared**: código común. `DefaultScatteredWebApplication` centraliza el arranque, y su punto de extensión permite que cada proyecto añada lo suyo. Así queda el `Program.cs` de un gateway:
 
 ```csharp
-WebApplication app = DefaultScatteredWebApplication.Create();
+WebApplication app = DefaultScatteredWebApplication.Create(webappBuilder =>
+{
+    webappBuilder.Services.AddReverseProxy()
+        .LoadFromConfig(webappBuilder.Configuration.GetSection("ReverseProxy"));
+});
+
 app.MapGet("/", () => "Hello World!");
+app.MapReverseProxy();
+
 DefaultScatteredWebApplication.Run(app);
 ```
 
@@ -104,16 +137,18 @@ En este capítulo no hace falta Docker: los servicios no usan ninguna infraestru
 
 ```bash
 dotnet build Scattered.sln
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Public/Scattered.API.Public
 DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Orders/Scattered.Services.Orders
+curl -k https://localhost:7283/order-ms/order/3fa85f64-5717-4562-b3fc-2c963f66afa6
 ```
 
-Cada servicio expone Swagger en `/swagger`. La lista completa de comandos, puertos y particularidades (.NET 6 sin soporte, el proyecto huérfano de Products…) está en [docs/flow/README.md](docs/flow/README.md#cómo-ejecutarla).
+Cada servicio expone Swagger en `/swagger`. La lista completa de comandos, el flujo end to end a través del gateway y las particularidades (.NET 6 sin soporte, el proyecto huérfano de Products, la versión de YARP…) están en [docs/flow/flow2.md](docs/flow/flow2.md#cómo-ejecutarla).
 
 ## Cómo evoluciona este README
 
 Al replicar un capítulo nuevo en su rama `features/flowN`, actualiza:
 
-1. La nota inicial y la tabla **Estado de esta rama** (rama, capítulo, commit de origen, qué hay, qué falta y el siguiente capítulo).
+1. La nota inicial, la tabla **Estado de esta rama** y la sección **Qué cambió en este capítulo** (se reescribe en cada capítulo; la de los anteriores queda en su guía de `docs/flow`).
 2. El **diagrama**: edita `assets/architecture.svg` (pasa a borde continuo y etiqueta amarilla lo que ya existe) y regenera `assets/diagram.png`:
    ```bash
    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
@@ -122,7 +157,7 @@ Al replicar un capítulo nuevo en su rama `features/flowN`, actualiza:
    ```
 3. La casilla del capítulo en **Progreso del curso**.
 4. El árbol de **Descripción del repositorio** y **¿Cómo ejecutar la aplicación?** (a partir del capítulo 3 hace falta `docker-compose`).
-5. [docs/flow/README.md](docs/flow/README.md) con el detalle del capítulo.
+5. Crea `docs/flow/flowN.md` con el detalle del capítulo y enlázalo desde [docs/flow/README.md](docs/flow/README.md).
 
 ## Dale una estrella ⭐
 Si te gusta el proyecto no dudes en darle una estrella al [proyecto original](https://github.com/ElectNewt/Distribt), hacer un fork junto a una PR o incluso apoyar económicamente al autor [donando un café](https://www.buymeacoffee.com/netmentor).
