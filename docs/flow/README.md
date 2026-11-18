@@ -6,7 +6,7 @@ Esta rama es el punto de partida para replicar el curso de Distribt capítulo a 
 
 ## Contenido
 
-[Origen](#origen) · [Qué contiene](#qué-contiene) · [Cómo ejecutarla](#cómo-ejecutarla) · [Particularidades](#particularidades) · [Ramas del curso](#ramas-del-curso) · [Cómo avanzar al siguiente capítulo](#cómo-avanzar-al-siguiente-capítulo)
+[Origen](#origen) · [Qué contiene](#qué-contiene) · [Cómo ejecutarla](#cómo-ejecutarla) · [Flujo end to end (`features/flow1`)](#flujo-end-to-end-featuresflow1) · [Particularidades](#particularidades) · [Ramas del curso](#ramas-del-curso) · [Cómo avanzar al siguiente capítulo](#cómo-avanzar-al-siguiente-capítulo)
 
 ## Origen
 
@@ -82,6 +82,63 @@ DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Subscriptions/Scatte
 Para detenerlos todos: `pkill -f 'Scattered\.(API|Services)'`.
 
 Verificado: los 6 servicios arrancan y responden en las URLs de la tabla anterior.
+
+## Flujo end to end (`features/flow1`)
+
+> **Rama:** `features/flow1`, equivalente a [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) del original (`051e361`). Las respuestas y los casos límite de esta sección son los de esta rama; en los capítulos siguientes el flujo cambia (por ejemplo, en `features/flow2` las llamadas pasarán por el gateway con YARP).
+
+Con los 6 servicios de esta rama en marcha se puede recorrer un flujo de negocio básico: suscribirse, crear un producto, hacer un pedido, consultarlo, enviar un email y darse de baja. Todas las llamadas funcionan, pero **todavía no hay interconexión**: en este capítulo cada servicio es una isla y ninguno llama a otro. Todo el "flujo" vive en el cliente (`curl`).
+
+### Las llamadas
+
+```bash
+curl -k -X POST https://localhost:7197/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
+curl -k -X POST https://localhost:7185/product -H 'Content-Type: application/json' \
+  -d '{"productId":"11111111-1111-1111-1111-111111111111","productName":"Teclado","productDescription":"Mecánico"}'
+OID=$(curl -sk -X POST https://localhost:7077/order -H 'Content-Type: application/json' \
+  -d '{"orderId":"00000000-0000-0000-0000-000000000000"}' | tr -d '"')
+curl -k https://localhost:7077/order/$OID
+curl -k https://localhost:7185/product/11111111-1111-1111-1111-111111111111
+curl -k -X POST https://localhost:7273/email -H 'Content-Type: application/json' \
+  -d '{"from":"tienda@scattered.dev","to":"cliente@example.com","subject":"Pedido","body":"Gracias"}'
+curl -k -X DELETE https://localhost:7197/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
+```
+
+| # | Llamada | Respuesta | Qué pasa realmente |
+|---|---|---|---|
+| 1 | `POST :7197/subscription` `{"email":…}` | `200 true` | No guarda nada |
+| 2 | `POST :7185/product` | `200 true` | No guarda nada |
+| 3 | `POST :7077/order` | `200 "11ec970e-…"` | Genera un `Guid.NewGuid()` nuevo |
+| 4 | `GET :7077/order/11ec970e-…` | `200 {"orderId":"11ec970e-…"}` | Devuelve el mismo id que recibe; no busca nada |
+| 5 | `GET :7185/product/1111…` | `200 {…"TODO","TODO"}` | Datos fijos |
+| 6 | `POST :7273/email` | `200 true` | No envía nada |
+| 7 | `DELETE :7197/subscription` | `200 true` | No borra nada |
+
+El paso 4 parece "encontrar" el pedido del paso 3, pero cualquier GUID devolvería lo mismo porque no hay estado.
+
+### Por dónde pasa una petición dentro de cada servicio
+
+```text
+curl ──HTTP──▶ Kestrel (:7077)
+                │   DefaultScatteredWebApplication.Run(app)  ← src/Shared/Scattered.Shared.Api
+                ├─ UseHttpsRedirection   http :5261 → 307 → https :7077
+                ├─ UseAuthorization      (sin políticas todavía: deja pasar todo)
+                └─ MapControllers
+                     │  [Route("[controller]")]  → OrderController → /order
+                     │  [ApiController]          → enlaza y valida el body JSON
+                     ▼
+                OrderController.GetOrder(Guid orderId)
+                     └─ Task.FromResult(new OrderDto(orderId))  ← //TODO: logic
+```
+
+`Program.cs` solo llama a `Create()`, que registra los controllers y Swagger, y después a `Run()`, que monta el middleware de arriba. Ese arranque compartido es la "abstracción" de este capítulo, y es la razón de que los 4 servicios se comporten igual.
+
+### Casos límite
+
+- **Gateway:** `GET :7283/order/{id}` → **404**. La API pública solo conoce `GET /` (`Hello World!`). El enrutado hacia los servicios llega en el capítulo 2 con YARP.
+- **Validación de `[ApiController]`:** un email sin `to`/`subject`/`body` → **400** con `errors`. Un id que no es GUID en `/product/{id}` → **400**. El framework lo hace antes de que se ejecute tu código.
+- **HTTP a HTTPS:** HTTP plano devuelve **307** al puerto HTTPS, por `UseHttpsRedirection`.
+- **Nombres de ruta:** Swagger muestra la ruta como `/Order` (viene de `[controller]`). `Name = "addorder"` en `[HttpPost]` es solo el nombre del endpoint (`operationId`), no forma parte de la URL.
 
 ## Particularidades
 
