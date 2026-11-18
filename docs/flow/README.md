@@ -1,153 +1,27 @@
-# Flujo paso a paso: `features/flow1`
+# Flujo paso a paso
 
-Esta rama es el punto de partida para replicar el curso de Distribt capítulo a capítulo dentro de Scattered, y entender qué cambió entre cada rama del proyecto original hasta llegar a la versión final (`main`).
+Scattered replica el curso de Distribt capítulo a capítulo para entender cómo evoluciona un sistema distribuido desde un esqueleto hasta la versión final (`main`). Cada capítulo vive en su propia rama `features/flowN` y tiene aquí su guía: qué cambió respecto al anterior, cómo ejecutarlo y un flujo end to end para verlo funcionar.
 
 [← Volver al README principal](../../README.md)
 
 ## Contenido
 
-[Origen](#origen) · [Qué contiene](#qué-contiene) · [Cómo ejecutarla](#cómo-ejecutarla) · [Flujo end to end (`features/flow1`)](#flujo-end-to-end-featuresflow1) · [Particularidades](#particularidades) · [Ramas del curso](#ramas-del-curso) · [Cómo avanzar al siguiente capítulo](#cómo-avanzar-al-siguiente-capítulo)
+[Capítulos replicados](#capítulos-replicados) · [Ramas de Scattered](#ramas-de-scattered) · [Ramas del curso](#ramas-del-curso) · [Cómo avanzar al siguiente capítulo](#cómo-avanzar-al-siguiente-capítulo)
 
-## Origen
+## Capítulos replicados
 
-| | |
+| # | Guía | Rama de Scattered | Rama original | Qué cambia |
+|---|---|---|---|---|
+| 1 | [Introducción](flow1.md) | `features/flow1` | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) | Esqueleto de APIs y microservicios con un arranque común |
+| 2 | [Patrón API Gateway](flow2.md) | `features/flow2` | [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) | Las APIs pública y privada enrutan hacia Orders y Products con YARP |
+
+## Ramas de Scattered
+
+| Rama | Para qué |
 |---|---|
-| Proyecto original | [ElectNewt/Distribt](https://github.com/ElectNewt/Distribt) |
-| Rama de origen | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) |
-| Commit de origen | `051e361` add abstraction on minimal api and webapi (26-dic-2021) |
-| Cambios aplicados | Renombrado de `Distribt` a `Scattered` en carpetas, proyectos, namespaces y clases (`DefaultDistribtWebApplication` → `DefaultScatteredWebApplication`), y nota de créditos en el README |
-
-Fuera del renombrado, el código es idéntico al original.
-
-## Qué contiene
-
-**En esta versión todo es esqueleto.** Los controladores devuelven datos fijos (`TODO`), no hay base de datos, y las APIs pública y privada solo dicen "Hello World!". Todavía no reenvían nada; eso llega en el capítulo 2 con YARP.
-
-### Proyectos (9, todos en .NET 6)
-
-| Proyecto | Qué hace hoy | URL local |
-|---|---|---|
-| `Scattered.API.Public` | Minimal API: `GET /` → `Hello World!` | https://localhost:7283 |
-| `Scattered.API.Private` | Minimal API: `GET /` → `Hello World!` | https://localhost:7022 |
-| `Scattered.Services.Emails` | `POST /email` devuelve siempre `true`, sin enviar nada | https://localhost:7273 |
-| `Scattered.Services.Orders` | `GET /order/{id}` devuelve el mismo id; `POST /order` devuelve un GUID nuevo | https://localhost:7077 |
-| `Scattered.Services.Products` | `GET /product/{id}` devuelve nombre y descripción `"TODO"`; `POST /product` devuelve siempre `true` | https://localhost:7185 |
-| `Scattered.Services.Subscriptions` | `POST` y `DELETE /subscription` devuelven siempre `true` | https://localhost:7197 |
-| `Scattered.Shared.Api` | `DefaultScatteredWebApplication`: arranque común (controllers, Swagger, HTTPS, autorización) | — |
-| `Scattered.Shared.Setup` | `GlobalUsings.cs` compartido por todos los proyectos | — |
-| `Scattered - Backup.Services.Products` | Proyecto huérfano heredado del original, fuera de la solución | — |
-
-Cada servicio expone Swagger en `/swagger` (solo en entorno `Development`).
-
-### Idea clave del capítulo
-
-`DefaultScatteredWebApplication` centraliza la configuración que comparten todos los servicios. Cada `Program.cs` queda en tres líneas:
-
-```csharp
-WebApplication app = DefaultScatteredWebApplication.Create();
-app.MapGet("/", () => "Hello World!");
-DefaultScatteredWebApplication.Run(app);
-```
-
-`Create` acepta un `Action<WebApplicationBuilder>` opcional para que cada servicio añada lo suyo. Ese punto de extensión se usa por primera vez en el capítulo 2.
-
-### Lo que todavía no existe
-
-- Comunicación entre servicios: ni HTTP entre ellos ni mensajería.
-- Persistencia: no hay bases de datos.
-- Infraestructura: `docker-compose.yaml` solo define RabbitMQ, y ningún servicio lo usa todavía.
-- Tests y `GlobalSettings.msbuild`: aparecen en capítulos posteriores.
-
-## Cómo ejecutarla
-
-Requisitos: SDK de .NET 10 y el certificado HTTPS de desarrollo de confianza (`dotnet dev-certs https --trust`, una sola vez).
-
-```bash
-dotnet build Scattered.sln
-```
-
-Compila con 0 errores y avisos `NETSDK1138`, que solo indican que .NET 6 ya no tiene soporte.
-
-Para ejecutar los servicios sin instalar el runtime de .NET 6, usa `DOTNET_ROLL_FORWARD=Major`, que los hace correr sobre .NET 10:
-
-```bash
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Public/Scattered.API.Public
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Private/Scattered.API.Private
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Emails/Scattered.Services.Emails
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Orders/Scattered.Services.Orders
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Products/Scattered.Services.Products/Scattered.Services.Products.csproj
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Subscriptions/Scattered.Services.Subscriptions
-```
-
-Para detenerlos todos: `pkill -f 'Scattered\.(API|Services)'`.
-
-Verificado: los 6 servicios arrancan y responden en las URLs de la tabla anterior.
-
-## Flujo end to end (`features/flow1`)
-
-> **Rama:** `features/flow1`, equivalente a [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) del original (`051e361`). Las respuestas y los casos límite de esta sección son los de esta rama; en los capítulos siguientes el flujo cambia (por ejemplo, en `features/flow2` las llamadas pasarán por el gateway con YARP).
-
-Con los 6 servicios de esta rama en marcha se puede recorrer un flujo de negocio básico: suscribirse, crear un producto, hacer un pedido, consultarlo, enviar un email y darse de baja. Todas las llamadas funcionan, pero **todavía no hay interconexión**: en este capítulo cada servicio es una isla y ninguno llama a otro. Todo el "flujo" vive en el cliente (`curl`).
-
-### Las llamadas
-
-```bash
-curl -k -X POST https://localhost:7197/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
-curl -k -X POST https://localhost:7185/product -H 'Content-Type: application/json' \
-  -d '{"productId":"11111111-1111-1111-1111-111111111111","productName":"Teclado","productDescription":"Mecánico"}'
-OID=$(curl -sk -X POST https://localhost:7077/order -H 'Content-Type: application/json' \
-  -d '{"orderId":"00000000-0000-0000-0000-000000000000"}' | tr -d '"')
-curl -k https://localhost:7077/order/$OID
-curl -k https://localhost:7185/product/11111111-1111-1111-1111-111111111111
-curl -k -X POST https://localhost:7273/email -H 'Content-Type: application/json' \
-  -d '{"from":"tienda@scattered.dev","to":"cliente@example.com","subject":"Pedido","body":"Gracias"}'
-curl -k -X DELETE https://localhost:7197/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
-```
-
-| # | Llamada | Respuesta | Qué pasa realmente |
-|---|---|---|---|
-| 1 | `POST :7197/subscription` `{"email":…}` | `200 true` | No guarda nada |
-| 2 | `POST :7185/product` | `200 true` | No guarda nada |
-| 3 | `POST :7077/order` | `200 "11ec970e-…"` | Genera un `Guid.NewGuid()` nuevo |
-| 4 | `GET :7077/order/11ec970e-…` | `200 {"orderId":"11ec970e-…"}` | Devuelve el mismo id que recibe; no busca nada |
-| 5 | `GET :7185/product/1111…` | `200 {…"TODO","TODO"}` | Datos fijos |
-| 6 | `POST :7273/email` | `200 true` | No envía nada |
-| 7 | `DELETE :7197/subscription` | `200 true` | No borra nada |
-
-El paso 4 parece "encontrar" el pedido del paso 3, pero cualquier GUID devolvería lo mismo porque no hay estado.
-
-### Por dónde pasa una petición dentro de cada servicio
-
-```text
-curl ──HTTP──▶ Kestrel (:7077)
-                │   DefaultScatteredWebApplication.Run(app)  ← src/Shared/Scattered.Shared.Api
-                ├─ UseHttpsRedirection   http :5261 → 307 → https :7077
-                ├─ UseAuthorization      (sin políticas todavía: deja pasar todo)
-                └─ MapControllers
-                     │  [Route("[controller]")]  → OrderController → /order
-                     │  [ApiController]          → enlaza y valida el body JSON
-                     ▼
-                OrderController.GetOrder(Guid orderId)
-                     └─ Task.FromResult(new OrderDto(orderId))  ← //TODO: logic
-```
-
-`Program.cs` solo llama a `Create()`, que registra los controllers y Swagger, y después a `Run()`, que monta el middleware de arriba. Ese arranque compartido es la "abstracción" de este capítulo, y es la razón de que los 4 servicios se comporten igual.
-
-### Casos límite
-
-- **Gateway:** `GET :7283/order/{id}` → **404**. La API pública solo conoce `GET /` (`Hello World!`). El enrutado hacia los servicios llega en el capítulo 2 con YARP.
-- **Validación de `[ApiController]`:** un email sin `to`/`subject`/`body` → **400** con `errors`. Un id que no es GUID en `/product/{id}` → **400**. El framework lo hace antes de que se ejecute tu código.
-- **HTTP a HTTPS:** HTTP plano devuelve **307** al puerto HTTPS, por `UseHttpsRedirection`.
-- **Nombres de ruta:** Swagger muestra la ruta como `/Order` (viene de `[controller]`). `Name = "addorder"` en `[HttpPost]` es solo el nombre del endpoint (`operationId`), no forma parte de la URL.
-
-## Particularidades
-
-- **.NET 6 sin soporte.** El código se mantiene en `net6.0` para ser fiel al curso. La migración a .NET 10 ya está hecha en `main` y se puede repetir al final del flujo.
-- **`Scattered.sln` y no `.slnx`.** El formato `.slnx` llegó al original en el último commit de `main` (`6be727b`).
-- **Products necesita la ruta al `.csproj`.** Su carpeta contiene también `Scattered - Backup.Services.Products.csproj`, así que `dotnet run --project <carpeta>` falla con *"contiene más de un archivo de proyecto"*. Se mantiene por fidelidad al original; `main` lo eliminó.
-- **Puertos aleatorios.** Los puertos de `launchSettings.json` son los que generó Visual Studio. El capítulo 2 los cambia por un esquema fijo (`50X20` HTTPS / `50X10` HTTP).
-- **Carpetas vacías al cambiar desde `main`.** Al pasar a esta rama quedan en disco carpetas de proyectos de `main` que solo contienen `bin/` y `obj/` (ignorados por Git). Se limpian con `git clean -ndX` (vista previa) y `git clean -fdX`.
-- **Sin historial común con Distribt.** Scattered empezó con un `git init` propio, así que Git no relaciona sus commits con los del original. Para comparar se usa el contenido (ver más abajo).
+| `features/flowN` | Réplica de un capítulo. Nace de `features/flow(N-1)` |
+| `features/integration-flow` | Va acumulando cada capítulo terminado (se mergea `features/flowN` al cerrarlo) |
+| `main` | Versión final, equivalente al `main` del original migrado a .NET 10 |
 
 ## Ramas del curso
 
@@ -155,7 +29,7 @@ Ramas del proyecto original en orden. Cada una corresponde a un vídeo o artícu
 
 | # | Rama original | Commit | Fecha | Qué añade |
 |---|---|---|---|---|
-| 1 | `01-Introduccion` | `051e361` | 2021-12-26 | Esqueleto de APIs y microservicios **← esta rama** |
+| 1 | `01-Introduccion` | `051e361` | 2021-12-26 | Esqueleto de APIs y microservicios |
 | 2 | `02-patron-api-gateway` | `fbd27a2` | 2022-01-07 | API Gateway con YARP |
 | 3–4 | `03-04-Producers-consumers-RabbitMQ` | `0da6850` | 2022-01-19 | Productor/consumidor con RabbitMQ |
 | 5 | `05-Gestion-credenciales` | `972c150` | 2022-01-31 | Secretos con Vault |
@@ -183,40 +57,49 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/01-Introduccion..origin/02-patron-api-gateway
-git diff --stat  origin/01-Introduccion origin/02-patron-api-gateway
-git diff         origin/01-Introduccion origin/02-patron-api-gateway
+git log --oneline origin/02-patron-api-gateway..origin/03-04-Producers-consumers-RabbitMQ
+git diff --stat  origin/02-patron-api-gateway origin/03-04-Producers-consumers-RabbitMQ
+git diff         origin/02-patron-api-gateway origin/03-04-Producers-consumers-RabbitMQ
 ```
 
 ### 2. Aplicar ese cambio en Scattered
 
-Cada capítulo va en su propio commit sobre esta rama (o en una rama `features/flowN` nueva a partir de la anterior). El diff del original nombra todo `Distribt`, así que hay que adaptarlo:
+Crea la rama del capítulo a partir de la anterior y aplica el diff del original. El diff nombra todo `Distribt`, así que hay que adaptarlo, y se excluye el `README.md` porque el de Scattered se escribe a mano:
 
 ```bash
+cd ~/Documents/workspace/NET/Scattered
+git switch -c features/flow3 features/flow2
+
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/01-Introduccion origin/02-patron-api-gateway \
+git diff origin/02-patron-api-gateway origin/03-04-Producers-consumers-RabbitMQ -- . ':(exclude)README.md' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/02.patch
+  > /tmp/03.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/02.patch   # comprobar que aplica limpio
-git apply /tmp/02.patch
+git apply --check /tmp/03.patch   # comprobar que aplica limpio
+git apply /tmp/03.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
 
 ### 3. Verificar antes de pasar al siguiente
 
-- `dotnet build Scattered.sln` sin errores.
-- Los servicios arrancan y las funcionalidades nuevas del capítulo responden.
+- `dotnet build Scattered.sln` sin errores. Todos los proyectos tienen `TreatWarningsAsErrors`, así que un paquete de 2022 con vulnerabilidades conocidas (aviso `NU1903`) rompe la compilación: sube a la versión parcheada más cercana y anótalo en la guía del capítulo (ver el caso de YARP en el [capítulo 2](flow2.md#particularidades)).
+- Los servicios arrancan y las funcionalidades nuevas del capítulo responden: escribe su flujo end to end.
 - A partir del capítulo 3 hace falta la infraestructura de `docker-compose.yaml` (RabbitMQ, y después Vault, Consul, Graylog…). Las imágenes de 2022 pueden no existir ya o haber cambiado; `docs/cambios/README.md` en `main` documenta los arreglos que hicieron falta para la versión final.
 
-### 4. Comparar con la versión final
+### 4. Documentar y cerrar el capítulo
+
+1. Crea `docs/flow/flowN.md` y añádelo a [Capítulos replicados](#capítulos-replicados).
+2. Actualiza el README principal según su sección *Cómo evoluciona este README*.
+3. Haz commit en `features/flowN` y mergea en `features/integration-flow`.
+
+### 5. Comparar con la versión final
 
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow1 main
+git diff -M --stat features/flow2 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.
