@@ -2,7 +2,7 @@
 
 En el capítulo 1 cada microservicio era una isla y el cliente tenía que conocer el puerto de cada uno. En este capítulo las APIs pública y privada se convierten en **API Gateways** con [YARP](https://github.com/microsoft/reverse-proxy): el cliente solo habla con el gateway y este reenvía la petición al microservicio que corresponde.
 
-[← Capítulo 1](flow1.md) · [Índice del flujo](README.md)
+[← Capítulo 1](flow1.md) · [Índice del flujo](README.md) · [Siguiente: capítulos 3–4 →](flow3.md)
 
 ## Contenido
 
@@ -151,29 +151,90 @@ El gateway se conecta a los servicios por HTTPS, así que el certificado de desa
 
 > **Rama:** `features/flow2`, equivalente a [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) del original (`fbd27a2`). Las respuestas y los casos límite de esta sección son los de esta rama.
 
-Es el mismo flujo del [capítulo 1](flow1.md#flujo-end-to-end-featuresflow1), pero ahora **el cliente solo conoce el puerto del gateway** (`7283` público, `7022` privado), no el de cada microservicio.
+Es el mismo flujo del [capítulo 1](flow1.md#flujo-end-to-end-featuresflow1), pero ahora **el cliente solo conoce el puerto del gateway** (`7283` público, `7022` privado), no el de cada microservicio. Las respuestas son las mismas porque los controllers no cambiaron; lo nuevo es el camino.
+
+### Arrancar con logs detallados
+
+Para ver qué hace cada pieza (qué ruta de YARP coincide, a dónde reenvía y qué action ejecuta el microservicio) se sube el nivel de log de ASP.NET Core y de YARP solo para esta ejecución, con variables de entorno y sin tocar código. Los nombres llevan puntos, así que se pasan con `env`:
+
+```bash
+for p in src/Api/Public/Scattered.API.Public src/Api/Private/Scattered.API.Private \
+         src/Services/Emails/Scattered.Services.Emails src/Services/Orders/Scattered.Services.Orders \
+         src/Services/Products/Scattered.Services.Products/Scattered.Services.Products.csproj \
+         src/Services/Subscriptions/Scattered.Services.Subscriptions; do
+  n=$(basename ${p%.csproj})
+  nohup env DOTNET_ROLL_FORWARD=Major \
+    'Logging__LogLevel__Microsoft.AspNetCore=Information' 'Logging__LogLevel__Yarp=Information' \
+    Logging__Console__FormatterName=simple Logging__Console__FormatterOptions__SingleLine=true \
+    dotnet run --no-build --project $p > /tmp/$n.log 2>&1 &
+done
+```
+
+Después de cada llamada, `tail /tmp/Scattered.API.Public.log` y `tail /tmp/Scattered.Services.Orders.log` muestran el lado del gateway y el del microservicio. Para detenerlos: `pkill -f 'Scattered\.(API|Services)'`.
 
 ### Las llamadas
 
 ```bash
+# Gateway público
+curl -k https://localhost:7283/
 curl -k -X POST https://localhost:7283/product-ms/product -H 'Content-Type: application/json' \
   -d '{"productId":"11111111-1111-1111-1111-111111111111","productName":"Teclado","productDescription":"Mecánico"}'
+curl -k https://localhost:7283/product-ms/product/11111111-1111-1111-1111-111111111111
 OID=$(curl -sk -X POST https://localhost:7283/order-ms/order -H 'Content-Type: application/json' \
   -d '{"orderId":"00000000-0000-0000-0000-000000000000"}' | tr -d '"')
 curl -k https://localhost:7283/order-ms/order/$OID
-curl -k https://localhost:7283/product-ms/product/11111111-1111-1111-1111-111111111111
+
+# Gateway privado (tenants)
 curl -k https://localhost:7022/reports/order/$OID
+
+# Subscriptions y Emails no tienen ruta: solo se llega directo
+curl -k -X POST https://localhost:7283/subscription-ms/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
+curl -k -X POST https://localhost:50420/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
+curl -k -X POST https://localhost:50120/email -H 'Content-Type: application/json' \
+  -d '{"from":"tienda@scattered.dev","to":"cliente@example.com","subject":"Pedido","body":"Gracias"}'
+curl -k -X DELETE https://localhost:50420/subscription -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
+
+# Errores a través del gateway
+curl -k https://localhost:7283/order-ms/order/no-es-guid
+curl -k -X POST https://localhost:7283/product-ms/product -H 'Content-Type: application/json' -d '{"productName":"x"}'
+curl -k https://localhost:7283/order-ms/no-existe
+curl -s -o /dev/null -w '%{http_code} → %{redirect_url}\n' http://localhost:5187/order-ms/order/$OID
+
+# Con Products parado
+pkill -f 'Scattered\.Services\.Products'
+curl -k https://localhost:7283/product-ms/product/11111111-1111-1111-1111-111111111111
 ```
 
-| # | Llamada al gateway | Se reenvía a | Respuesta |
-|---|---|---|---|
-| 1 | `POST :7283/product-ms/product` | Products `:50320/product` | `200 true` |
-| 2 | `POST :7283/order-ms/order` | Orders `:50220/order` | `200 "93f66897-…"` |
-| 3 | `GET :7283/order-ms/order/93f66897-…` | Orders `:50220/order/93f66897-…` | `200 {"orderId":"93f66897-…"}` |
-| 4 | `GET :7283/product-ms/product/1111…` | Products `:50320/product/1111…` | `200 {…"TODO","TODO"}` |
-| 5 | `GET :7022/reports/order/93f66897-…` | Orders `:50220/order/93f66897-…` | `200 {"orderId":"93f66897-…"}` |
+### Qué ocurre en cada parte
 
-Las respuestas son las mismas que en el capítulo 1 porque los controllers no cambiaron; lo nuevo es el camino.
+| # | Llamada | Respuesta | Gateway | Microservicio |
+|---|---|---|---|---|
+| 1 | `GET :7283/` | `200 Hello World!` | Ejecuta `HTTP: GET /`; **no hace proxy** | — |
+| 2 | `POST :7283/product-ms/product` | `200 true` | `ProductRoute` → `Proxying to https://localhost:50320/product` | Products: `ProductController.GetProduct(ProductDto)` |
+| 3 | `GET :7283/product-ms/product/1111…` | `200 {…"TODO","TODO"}` | `ProductRoute` → `…:50320/product/1111…` | Products: `GetProduct(Guid)` |
+| 4 | `POST :7283/order-ms/order` | `200 "7cf48a99-…"` | `OrderRoute` → `…:50220/order` | Orders: `AddOrder` |
+| 5 | `GET :7283/order-ms/order/7cf48a99-…` | `200 {"orderId":…}` | `OrderRoute` → `…:50220/order/7cf48a99-…` | Orders: `GetOrder` |
+| 6 | `GET :7022/reports/order/7cf48a99-…` | `200 {"orderId":…}` | Gateway **privado**, `ReportsRoute` → `…:50220/order/…` | Orders: `GetOrder` |
+| 7 | `POST :7283/subscription-ms/subscription` | `404` | Ninguna ruta coincide; **no reenvía nada** | No llega |
+| 8 | `POST :50420/subscription` (directo) | `200 true` | — | Subscriptions: `Subscribe` |
+| 9 | `POST :50120/email` (directo) | `200 true` | — | Emails: `Send` |
+| 10 | `DELETE :50420/subscription` (directo) | `200 true` | — | Subscriptions: `Unsubscribe` |
+| 11 | `GET :7283/order-ms/order/no-es-guid` | `400` | Reenvía; recibe `response 400` | Orders: `BadRequestObjectResult` (validación) |
+| 12 | `POST :7283/product-ms/product` con body incompleto | `400` | Reenvía; recibe `response 400` | Products: `ValidationProblemDetails` |
+| 13 | `GET :7283/order-ms/no-existe` | `404` | **Sí** coincide `OrderRoute` y reenvía a `/no-existe` | Orders: *"reached the end of the middleware pipeline"* → 404 |
+| 14 | `GET http://:5187/order-ms/order/…` | `307` → https `:7283` | Redirige **antes** del proxy | No llega |
+| 15 | Cabeceras directo vs gateway | Idénticas | Transparente: mismo `content-type` y `server: Kestrel` | — |
+| 16 | Products parado, `GET :7283/product-ms/product/…` | `502` | `Connection refused (localhost:50320)` | Caído |
+
+### Qué enseña este flujo
+
+- **El gateway no valida, solo enruta.** Los 400 de los pasos 11 y 12 los genera el `[ApiController]` del microservicio, y el gateway los devuelve tal cual.
+- **Dos 404 distintos.** En el paso 7 el 404 lo da el **gateway** (ninguna ruta coincide) y la petición no llega a ningún servicio. En el 13 el gateway **sí** reenvía y el 404 lo da el **microservicio**. El cliente no ve la diferencia; los logs sí.
+- **El prefijo desaparece.** El cliente pide `/order-ms/order/{id}` y Orders recibe `/order/{id}`: es el transform `PathPattern`, visible en la línea `Proxying to …`.
+- **Gateway → servicio va por HTTP/2 sobre HTTPS** (`HTTP/2 RequestVersionOrLower`). Por eso el certificado de desarrollo tiene que ser de confianza.
+- **Dos gateways, un mismo servicio.** El público y el privado llegan al mismo Orders por rutas distintas (pasos 5 y 6); Orders no sabe quién lo llamó.
+- **Subscriptions y Emails solo funcionan directo** (pasos 8–10). Sigue sin haber comunicación entre servicios; eso empieza en el capítulo 3–4.
+- **Peculiaridad heredada:** en Products la action del `POST` también se llama `GetProduct` (sobrecarga), así que el log muestra `GetProduct(ProductDto)` para una creación.
 
 ### Por dónde pasa una petición ahora
 
@@ -203,5 +264,6 @@ curl ──HTTPS──▶ API Public (:7283)
 
 - **YARP 1.1.2 en lugar de 1.0.0.** El original usa `Yarp.ReverseProxy` 1.0.0, que hoy tiene dos vulnerabilidades de denegación de servicio de gravedad alta: [CVE-2022-26924](https://github.com/advisories/GHSA-8xc6-g8xw-h2c4) (corregida en 1.0.1) y [CVE-2023-33141](https://github.com/advisories/GHSA-jrjw-qgr2-wfcg) (corregida en 1.1.2). Como todos los proyectos tienen `TreatWarningsAsErrors`, el aviso `NU1903` rompe la compilación. Se usa 1.1.2: la versión más cercana que corrige ambas, de la misma línea 1.x y compatible con .NET 6. La API usada (`AddReverseProxy`, `LoadFromConfig`, `MapReverseProxy`) es la misma.
 - **El original deja espacios en blanco al final de línea** en el `appsettings.json` del gateway privado; `git apply` lo avisa, pero se conserva por fidelidad.
+- **Error de Kestrel inofensivo en los logs.** El gateway público registra de vez en cuando `fail: Unexpected exception in TimingPipeFlusher.FlushAsync … Bad address`. El cliente siempre recibe la respuesta correcta (120 de 120 llamadas con 200). Solo pasa por HTTP/2 (2 de 40) y nunca por HTTP/1.1 (0 de 40): es Kestrel intentando escribir el cierre de la conexión TLS cuando `curl` ya la cerró. No viene del código ni de YARP; lo más probable es que sea efecto de ejecutar código .NET 6 sobre el runtime .NET 10 (`DOTNET_ROLL_FORWARD=Major`) en macOS.
 - **Direcciones escritas a mano.** Los clusters apuntan a `https://localhost:50X20/`; si un servicio no arranca en su puerto, el gateway devuelve 502.
 - Siguen vigentes las particularidades del [capítulo 1](flow1.md#particularidades) (.NET 6 sin soporte, `.csproj` huérfano de Products, `Scattered.sln`).

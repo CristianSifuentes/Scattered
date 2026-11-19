@@ -1,8 +1,14 @@
 version: "3.9"
 services:
   rabbitmq:
-    image: rabbitmq:3-management #needed to be able to have a User interface
+    image: rabbitmq:3.9-management-alpine #management version needed to be able to have a User interface
     container_name: rabbitmq
+    environment:
+        - RABBITMQ_DEFAULT_USER=ScatteredAdmin
+        - RABBITMQ_DEFAULT_PASS=ScatteredPass
     ports:
         - 5672:5672
         - 15672:15672
+    volumes: 
+          - ./tools/rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config
+          - ./tools/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
