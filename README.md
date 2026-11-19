@@ -76,7 +76,8 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 
 ## Progreso del curso
 
-Cada capítulo se replica en su propia rama `features/flowN`. Marcado = ya replicado en Scattered.
+<!-- progress:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
+Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **4 de 17 capítulos** replicados.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
 - [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
@@ -94,6 +95,7 @@ Cada capítulo se replica en su propia rama `features/flowN`. Marcado = ya repli
 - [ ] 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes
 - [ ] 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting)
 - [ ] 17 · [.NET Aspire](https://www.netmentor.es/entrada/introduccion-net-aspire) (rama aparte en el original)
+<!-- progress:end -->
 
 ## Descripción del repositorio
 
@@ -179,7 +181,7 @@ Al replicar un capítulo nuevo en su rama `features/flowN`, actualiza:
      --hide-scrollbars --force-device-scale-factor=2 --window-size=1400,1090 \
      --screenshot=assets/diagram.png "file://$PWD/assets/architecture.svg"
    ```
-3. La casilla del capítulo en **Progreso del curso**.
+3. **Progreso del curso** no se edita a mano: lo genera `tools/docs/progress.py` desde `docs/flow/chapters.json`, y los hooks de `.githooks/` lo ejecutan en cada commit y merge (actívalos una vez con `git config core.hooksPath .githooks`; ver [docs/flow](docs/flow/README.md#4-documentar-y-cerrar-el-capítulo)).
 4. El árbol de **Descripción del repositorio** y **¿Cómo ejecutar la aplicación?** (a partir del capítulo 3 hace falta `docker-compose`).
 5. Crea `docs/flow/flowN.md` con el detalle del capítulo y enlázalo desde [docs/flow/README.md](docs/flow/README.md).
 

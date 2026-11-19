@@ -10,11 +10,15 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 
 ## Capítulos replicados
 
+<!-- chapters:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
 | # | Guía | Rama de Scattered | Rama original | Qué cambia |
 |---|---|---|---|---|
 | 1 | [Introducción](flow1.md) | `features/flow1` | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) | Esqueleto de APIs y microservicios con un arranque común |
 | 2 | [Patrón API Gateway](flow2.md) | `features/flow2` | [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) | Las APIs pública y privada enrutan hacia Orders y Products con YARP |
 | 3–4 | [Producers/Consumers con RabbitMQ](flow3.md) | `features/flow3` | [`03-04-Producers-consumers-RabbitMQ`](https://github.com/ElectNewt/Distribt/tree/03-04-Producers-consumers-RabbitMQ) | Comunicación asíncrona: el gateway publica las suscripciones y un consumer las procesa |
+
+Siguiente: capítulo 5 · Gestión de credenciales (rama `features/flow4`, original [`05-Gestion-credenciales`](https://github.com/ElectNewt/Distribt/tree/05-Gestion-credenciales)).
+<!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
 
@@ -97,7 +101,18 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 
 ### 4. Documentar y cerrar el capítulo
 
-1. Crea `docs/flow/flowN.md` y añádelo a [Capítulos replicados](#capítulos-replicados).
+1. Crea `docs/flow/flowN.md` con un bloque vacío `<!-- nav:start -->` / `<!-- nav:end -->` bajo la introducción y ejecuta `python3 tools/docs/progress.py`. Al existir la guía, el capítulo cuenta como replicado y el script actualiza:
+   - la lista **Progreso del curso** del README principal (casilla, enlace a la guía, contador y `← esta rama` según la rama actual);
+   - la tabla [Capítulos replicados](#capítulos-replicados) y la línea *Siguiente*;
+   - la navegación (anterior · índice · siguiente) y la línea *Progreso* de cada guía, de modo que el enlace *Siguiente* de la guía anterior pasa de "(pendiente)" a enlazar la nueva.
+
+   Los títulos, enlaces a artículos y resúmenes salen de [`chapters.json`](chapters.json); edítalos allí. `python3 tools/docs/progress.py --check` falla si algo está desactualizado.
+
+   No hace falta ejecutarlo a mano si los hooks de `.githooks/` están activos (una vez por clon: `git config core.hooksPath .githooks`):
+   - `pre-commit` regenera los bloques y añade al commit los archivos que cambien;
+   - `post-merge` hace lo mismo tras un merge (el marcador `← esta rama` desaparece en `features/integration-flow`) y lo guarda en un commit aparte, *Update course progress after merge*.
+
+   En GitHub, el workflow `.github/workflows/docs-progress.yml` ejecuta `--check` en cada push a `features/**` y en cada PR.
 2. Actualiza el README principal según su sección *Cómo evoluciona este README*.
 3. Si el capítulo toca `docker-compose.yaml`, actualiza [contenedores.md](contenedores.md#cómo-actualizar-este-documento). Regenera los PDF de `docs/pdf/`.
 4. Haz commit en `features/flowN` y mergea en `features/integration-flow`.
