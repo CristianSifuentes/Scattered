@@ -2,7 +2,11 @@
 
 Punto de partida para replicar el curso de Distribt capítulo a capítulo dentro de Scattered. Este documento describe el estado del código **en la rama `features/flow1`**; las ramas posteriores lo conservan tal cual como referencia histórica.
 
-[← Índice del flujo](README.md) · [Siguiente: capítulo 2 →](flow2.md)
+<!-- nav:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
+[Índice del flujo](README.md) · [Siguiente: capítulo 2 →](flow2.md)
+
+Progreso: **1** · [2](flow2.md) · [3–4](flow3.md) · 5 · 6 · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+<!-- nav:end -->
 
 ## Contenido
 

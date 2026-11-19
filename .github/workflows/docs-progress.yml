@@ -1,0 +1,21 @@
+name: Progreso del curso
+
+# Comprueba que el progreso del README y la navegación de docs/flow están al día
+# con docs/flow/chapters.json y las guías existentes. No modifica nada.
+on:
+  push:
+    branches: [ "features/**" ]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Comprobar progreso y navegación
+        env:
+          PROGRESS_BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: python3 tools/docs/progress.py --check

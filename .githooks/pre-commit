@@ -1,0 +1,9 @@
+#!/bin/sh
+# Regenera el progreso del curso y la navegación de docs/flow antes de cada commit
+# y añade al commit los archivos que cambien. Se activa con:
+#   git config core.hooksPath .githooks
+root=$(git rev-parse --show-toplevel)
+changed=$(python3 "$root/tools/docs/progress.py") || exit 1
+[ -z "$changed" ] && exit 0
+echo "$changed"
+echo "$changed" | sed 's/^actualizado //' | (cd "$root" && xargs git add --)
