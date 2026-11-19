@@ -1,46 +1,53 @@
 # Scattered
 
-![Scattered](assets/Scattered.svg)
+![Scattered](assets/scattered-logo.svg)
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow2`)** replica la rama [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) del proyecto original (commit `fbd27a2`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow3`)** replica la rama [`03-04-Producers-consumers-RabbitMQ`](https://github.com/ElectNewt/Distribt/tree/03-04-Producers-consumers-RabbitMQ) del proyecto original (commit `0da6850`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow2` (nace de `features/flow1`) |
-| Capítulo del curso | 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) |
-| Rama original | [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) (`fbd27a2`) |
-| Qué hay | 2 API Gateways con YARP que enrutan hacia Orders y Products, y 4 microservicios *Web API* con datos fijos en puertos fijos |
-| Qué falta | Comunicación entre microservicios, mensajería, persistencia e infraestructura |
-| Guía del capítulo | [docs/flow/flow2.md](docs/flow/flow2.md) |
-| Siguiente capítulo | 3–4 · [Producers/Consumers](https://www.netmentor.es/entrada/patron-productor-consumidor) con RabbitMQ (`03-04-Producers-consumers-RabbitMQ`) |
+| Rama | `features/flow3` (nace de `features/flow2`) |
+| Capítulo del curso | 3–4 · [Producers/Consumers](https://www.netmentor.es/entrada/patron-productor-consumidor) [con RabbitMQ](https://www.netmentor.es/entrada/rabbitmq-comunicacion-asincrona) |
+| Rama original | [`03-04-Producers-consumers-RabbitMQ`](https://github.com/ElectNewt/Distribt/tree/03-04-Producers-consumers-RabbitMQ) (`0da6850`) |
+| Qué hay | 2 API Gateways con YARP; el público además publica suscripciones en RabbitMQ, y un consumer nuevo las procesa. Librería `Shared.Communication` independiente del broker |
+| Qué falta | Persistencia, secretos, service discovery y el resto de infraestructura. Orders está roto en este capítulo (problema heredado) |
+| Infraestructura | RabbitMQ 3.9 en Docker (`docker compose up -d rabbitmq`) |
+| Guía del capítulo | [docs/flow/flow3.md](docs/flow/flow3.md) |
+| Siguiente capítulo | 5 · [Gestión de credenciales](https://www.netmentor.es/entrada/gestion-credenciales-vault) con Vault (`05-Gestion-credenciales`) |
 
 ## Qué cambió en este capítulo
 
-Respecto a `features/flow1` ([capítulo 1](docs/flow/flow1.md)), las APIs pública y privada dejan de ser un `Hello World!` y pasan a ser **API Gateways**: el cliente ya no necesita conocer el puerto de cada microservicio, solo el del gateway.
+Respecto a `features/flow2` ([capítulo 2](docs/flow/flow2.md)) aparece la **comunicación asíncrona**. Hasta ahora todo era HTTP: quien llama espera la respuesta. Ahora el gateway público deja un mensaje en RabbitMQ, responde `200` al momento, y otro proceso, el *consumer* de Subscriptions, lo procesa cuando puede, aunque en ese instante esté apagado.
 
 | Cambio | Dónde | Para qué |
 |---|---|---|
-| Paquete `Yarp.ReverseProxy` | `.csproj` de los dos gateways | Reverse proxy de Microsoft |
-| `AddReverseProxy().LoadFromConfig(...)` y `MapReverseProxy()` | `Program.cs` de los dos gateways | Usa por primera vez el punto de extensión de `DefaultScatteredWebApplication.Create` |
-| Sección `ReverseProxy` (Routes + Clusters) | `appsettings.json` de los dos gateways | Público: `/order-ms/*` → Orders, `/product-ms/*` → Products. Privado: `/reports/*` → Orders |
-| Puertos fijos `50X20` HTTPS / `50X10` HTTP | `launchSettings.json` de los 4 servicios | Los clusters necesitan direcciones estables (Emails 501x0, Orders 502x0, Products 503x0, Subscriptions 504x0) |
-| `AddRouting(LowercaseUrls = true)` | `DefaultScatteredWebApplication` | URLs generadas en minúsculas (Swagger: `/order` en lugar de `/Order`) |
+| RabbitMQ 3.9 con usuario, config y topología | `docker-compose.yaml`, `tools/rabbitmq/` (nuevo) | Exchanges, colas, bindings y dead-letter creados al arrancar el contenedor |
+| `Scattered.Shared.Communication` (nuevo) | `src/Shared/Shared.Communication/` | Abstracción: `IntegrationMessage`/`DomainMessage`, `IIntegrationMessagePublisher`, consumidor en segundo plano y handlers por tipo |
+| `Scattered.Shared.Communication.RabbitMQ` (nuevo) | `src/Shared/Shared.Communication/` | Implementación con `RabbitMQ.Client` 6.2.2 |
+| `Scattered.Shared.Serialization` (nuevo) | `src/Shared/` | `ISerializer`; se registra en `DefaultScatteredWebApplication` con `AddSerializer()` |
+| `ServiceBus.cs` | `Scattered.Shared.Setup` | Fachada: `AddServiceBusIntegrationPublisher`, `AddServiceBusIntegrationConsumer`, `AddHandlers`… |
+| Endpoint `POST /subscribe` + sección `Bus:RabbitMQ` | API Public | El **productor**: publica `SubscriptionDto` en `api.public.exchange` con routing key `subscription` |
+| `Scattered.Services.Subscriptions.Consumer` (nuevo, `:7073`) | `src/Services/Subscriptions/` | El **consumidor**: lee `subscription-queue` y ejecuta `SubscriptionHandler` / `UnSubscriptionHandler` |
+| `Scattered.Services.Subscriptions.Dtos` (nuevo) | `src/Services/Subscriptions/` | Contrato compartido entre productor y consumidor |
+| `GetOrder` publica un mensaje | `OrderController` (Orders) | Ejemplo a medias del original: Orders no registra el publisher y **devuelve 500** |
+| Documentación de `Shared.Communication` | `docs/communication/Readme.md` (nuevo) | Tipos de mensaje y cómo configurar publisher y consumer |
 
 ```text
-Antes (capítulo 1)                      Ahora (capítulo 2)
-cliente ──▶ :7077 Orders                cliente ──▶ :7283 /order-ms/order/{id}
-cliente ──▶ :7185 Products                           └─ YARP ──▶ :50220 Orders /order/{id}
-cliente ──▶ :7283 "Hello World!"        cliente ──▶ :7283 /product-ms/product/{id}
-                                                     └─ YARP ──▶ :50320 Products /product/{id}
-                                        tenant  ──▶ :7022 /reports/order/{id}
-                                                     └─ YARP ──▶ :50220 Orders /order/{id}
+Antes (capítulo 2)                          Ahora (capítulos 3–4)
+cliente ──▶ :7283 /subscription-ms/…        cliente ──▶ :7283 POST /subscribe ──▶ 200 (inmediato)
+            └─ 404 (sin ruta)                            └─ publica ──▶ RabbitMQ
+                                                           api.public.exchange
+                                                             └─▶ subscription.exchange
+                                                                   └─▶ subscription-queue
+                                                                         └─▶ Subscriptions.Consumer (:7073)
+                                                                               SubscriptionHandler
 ```
 
-Los controllers no cambian: el gateway solo cambia el camino. Subscriptions y Emails no se exponen (la suscripción llegará por mensajería en el capítulo 3–4). Única diferencia con el original: YARP 1.1.2 en lugar de 1.0.0, que tiene dos vulnerabilidades conocidas. Detalle de cada cambio, flujo end to end y casos límite en **[docs/flow/flow2.md](docs/flow/flow2.md)**.
+Diferencia con el original: el usuario de RabbitMQ se declara en `definitions.json`, porque con la imagen actual el broker arrancaba sin usuarios. La guía también documenta tres problemas heredados que se replican tal cual: Orders roto, el consumer que abre una conexión nueva por segundo, y el consumer que no se recupera si RabbitMQ no estaba al arrancar. Detalle de cada cambio, el mensaje por dentro y el flujo end to end en **[docs/flow/flow3.md](docs/flow/flow3.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -54,12 +61,12 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow2`):
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow3`):
 
 ![ScatteredDiagram](assets/diagram.png)
 
 - Las cajas con borde continuo existen en el código; las de borde discontinuo son el objetivo y todavía no existen.
-- Las flechas continuas son conexiones que ya funcionan (las rutas de los gateways); las discontinuas, conexiones planificadas.
+- Las flechas continuas son conexiones que ya funcionan: grises para HTTP (rutas de los gateways) y ámbar para mensajes por RabbitMQ. Las discontinuas son conexiones planificadas.
 - Las etiquetas amarillas representan el código ya implementado; las grises indican en qué capítulo llega cada pieza.
 - La fuente editable del diagrama es [`assets/architecture.svg`](assets/architecture.svg).
 
@@ -72,8 +79,8 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 Cada capítulo se replica en su propia rama `features/flowN`. Marcado = ya replicado en Scattered.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
-- [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md) **← esta rama**
-- [ ] 3–4 · [Producers/Consumers](https://www.netmentor.es/entrada/patron-productor-consumidor) para la comunicación asíncrona [con RabbitMQ](https://www.netmentor.es/entrada/rabbitmq-comunicacion-asincrona)
+- [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
+- [x] 3–4 · [Producers/Consumers](https://www.netmentor.es/entrada/patron-productor-consumidor) para la comunicación asíncrona [con RabbitMQ](https://www.netmentor.es/entrada/rabbitmq-comunicacion-asincrona) · [guía](docs/flow/flow3.md) **← esta rama**
 - [ ] 5 · [Gestión de credenciales](https://www.netmentor.es/entrada/gestion-credenciales-vault) con Vault
 - [ ] 6 · [Service discovery / registry](https://www.netmentor.es/entrada/service-registry-discovery-consul) con Consul
 - [ ] 7 · [Sistema de logs](https://www.netmentor.es/entrada/servicio-logs-graylog) con Graylog y Serilog
@@ -98,51 +105,68 @@ Nota: técnicamente cada carpeta representa un dominio y podría ser su propio r
 Scattered/
 ├── src/
 │   ├── Api/
-│   │   ├── Public/Scattered.API.Public       Gateway YARP :7283  /order-ms/* · /product-ms/*
+│   │   ├── Public/Scattered.API.Public       Gateway YARP :7283  /order-ms/* · /product-ms/* + POST /subscribe (publica)
 │   │   └── Private/Scattered.API.Private     Gateway YARP :7022  /reports/*
 │   ├── Services/
 │   │   ├── Emails/Scattered.Services.Emails                :50120  POST /email
-│   │   ├── Orders/Scattered.Services.Orders                :50220  GET /order/{id} · POST /order
+│   │   ├── Orders/Scattered.Services.Orders                :50220  GET /order/{id} · POST /order (⚠ 500)
 │   │   ├── Products/Scattered.Services.Products            :50320  GET /product/{id} · POST /product
-│   │   └── Subscriptions/Scattered.Services.Subscriptions  :50420  POST · DELETE /subscription
+│   │   └── Subscriptions/
+│   │       ├── Scattered.Services.Subscriptions            :50420  POST · DELETE /subscription
+│   │       ├── Scattered.Services.Subscriptions.Consumer   :7073   consume subscription-queue
+│   │       └── Scattered.Services.Subscriptions.Dtos               SubscriptionDto · UnSubscriptionDto
 │   └── Shared/
-│       ├── Scattered.Shared.Api      DefaultScatteredWebApplication: arranque común
-│       └── Scattered.Shared.Setup    GlobalUsings.cs enlazado en cada proyecto
-├── docs/flow/                Guía del flujo paso a paso, un archivo por capítulo
+│       ├── Scattered.Shared.Api             DefaultScatteredWebApplication: arranque común
+│       ├── Scattered.Shared.Setup           GlobalUsings.cs + ServiceBus.cs (fachada del bus)
+│       ├── Scattered.Shared.Serialization   ISerializer (Newtonsoft / System.Text.Json)
+│       └── Shared.Communication/
+│           ├── Scattered.Shared.Communication            Mensajes, publisher, consumer y handlers (sin broker)
+│           └── Scattered.Shared.Communication.RabbitMQ   Implementación con RabbitMQ.Client
+├── tools/rabbitmq/           rabbitmq.config + definitions.json (usuario y topología)
+├── docs/
+│   ├── flow/                 Guía del flujo paso a paso, un archivo por capítulo
+│   └── communication/        Documentación de Shared.Communication
 ├── assets/                   Imágenes de este README
-├── docker-compose.yaml       Solo RabbitMQ (aún sin uso)
+├── docker-compose.yaml       RabbitMQ 3.9 (AMQP :5672, UI :15672)
 └── Scattered.sln             Solución (.NET 6)
 ```
 
-* **Api**: los API Gateways. Reenvían las peticiones a los microservicios con YARP; las rutas están en su `appsettings.json`.
-* **Services**: los microservicios. Cada controlador devuelve datos fijos (`TODO`), sin base de datos.
-* **Shared**: código común. `DefaultScatteredWebApplication` centraliza el arranque, y su punto de extensión permite que cada proyecto añada lo suyo. Así queda el `Program.cs` de un gateway:
+* **Api**: los API Gateways. Reenvían peticiones HTTP con YARP y, en el caso del público, también **publican mensajes** (`POST /subscribe`).
+* **Services**: los microservicios. Subscriptions se divide en API, *consumer* y DTOs: el consumer es un proceso aparte que solo lee de la cola.
+* **Shared**: código común. La comunicación asíncrona sigue la idea *vendor free*: los servicios solo usan `IIntegrationMessagePublisher` y `IIntegrationMessageHandler<T>`; que detrás esté RabbitMQ solo lo sabe `Shared.Communication.RabbitMQ`. Así queda el consumer:
 
 ```csharp
-WebApplication app = DefaultScatteredWebApplication.Create(webappBuilder =>
+WebApplication app = DefaultScatteredWebApplication.Create(x =>
 {
-    webappBuilder.Services.AddReverseProxy()
-        .LoadFromConfig(webappBuilder.Configuration.GetSection("ReverseProxy"));
+    x.Services.AddHandlers(new List<IMessageHandler>()
+    {
+        new SubscriptionHandler(),
+        new UnSubscriptionHandler()
+    });
+    x.Services.AddServiceBusIntegrationConsumer(x.Configuration);
 });
-
-app.MapGet("/", () => "Hello World!");
-app.MapReverseProxy();
 
 DefaultScatteredWebApplication.Run(app);
 ```
 
+## Documentación
+
+* Flujo paso a paso por capítulo - [docs/flow](docs/flow/README.md)
+* Shared.Communication - [docs/communication/Readme.md](docs/communication/Readme.md)
+
 ## ¿Cómo ejecutar la aplicación?
 
-En este capítulo no hace falta Docker: los servicios no usan ninguna infraestructura.
+Desde este capítulo hace falta [Docker](https://www.netmentor.es/curso/docker) para RabbitMQ:
 
 ```bash
+docker compose up -d rabbitmq
 dotnet build Scattered.sln
 DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Public/Scattered.API.Public
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Orders/Scattered.Services.Orders
-curl -k https://localhost:7283/order-ms/order/3fa85f64-5717-4562-b3fc-2c963f66afa6
+DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Subscriptions/Scattered.Services.Subscriptions.Consumer
+curl -k -X POST https://localhost:7283/subscribe -H 'Content-Type: application/json' -d '{"email":"cliente@example.com"}'
 ```
 
-Cada servicio expone Swagger en `/swagger`. La lista completa de comandos, el flujo end to end a través del gateway y las particularidades (.NET 6 sin soporte, el proyecto huérfano de Products, la versión de YARP…) están en [docs/flow/flow2.md](docs/flow/flow2.md#cómo-ejecutarla).
+El consumer escribe `Email cliente@example.com successfully subscribed.` en su consola. La UI de RabbitMQ está en http://localhost:15672 (`ScatteredAdmin` / `ScatteredPass`). Cada servicio expone Swagger en `/swagger`. La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow3.md](docs/flow/flow3.md#cómo-ejecutarla).
 
 ## Cómo evoluciona este README
 

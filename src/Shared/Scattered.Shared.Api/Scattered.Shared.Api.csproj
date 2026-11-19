@@ -14,4 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Scattered.Shared.Serialization\Scattered.Shared.Serialization.csproj" />
+  </ItemGroup>
 </Project>

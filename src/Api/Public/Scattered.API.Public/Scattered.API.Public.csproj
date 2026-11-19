@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <!--Reference to the shared setup project and the global usings-->
+    <ProjectReference Include="..\..\..\Services\Subscriptions\Scattered.Services.Subscriptions.Dtos\Scattered.Services.Subscriptions.Dtos.csproj" />
     <ProjectReference Include="..\..\..\Shared\Scattered.Shared.Setup\Scattered.Shared.Setup.csproj" />
     <Compile Include="..\..\..\Shared\Scattered.Shared.Setup\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>

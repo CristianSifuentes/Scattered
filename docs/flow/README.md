@@ -14,6 +14,12 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 |---|---|---|---|---|
 | 1 | [Introducción](flow1.md) | `features/flow1` | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) | Esqueleto de APIs y microservicios con un arranque común |
 | 2 | [Patrón API Gateway](flow2.md) | `features/flow2` | [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) | Las APIs pública y privada enrutan hacia Orders y Products con YARP |
+| 3–4 | [Producers/Consumers con RabbitMQ](flow3.md) | `features/flow3` | [`03-04-Producers-consumers-RabbitMQ`](https://github.com/ElectNewt/Distribt/tree/03-04-Producers-consumers-RabbitMQ) | Comunicación asíncrona: el gateway publica las suscripciones y un consumer las procesa |
+
+Documentos transversales, que se actualizan con cada capítulo:
+
+- [Contenedores de Docker por capítulo](contenedores.md): qué contenedor nace en cada capítulo, qué corre dentro y su estado actual.
+- PDF de cada guía y de los contenedores en [`docs/pdf/`](../pdf/): `flowN.pdf` (qué cambió y qué no, archivo por archivo) y `contenedores.pdf`.
 
 ## Ramas de Scattered
 
@@ -57,27 +63,27 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/02-patron-api-gateway..origin/03-04-Producers-consumers-RabbitMQ
-git diff --stat  origin/02-patron-api-gateway origin/03-04-Producers-consumers-RabbitMQ
-git diff         origin/02-patron-api-gateway origin/03-04-Producers-consumers-RabbitMQ
+git log --oneline origin/03-04-Producers-consumers-RabbitMQ..origin/05-Gestion-credenciales
+git diff --stat  origin/03-04-Producers-consumers-RabbitMQ origin/05-Gestion-credenciales
+git diff         origin/03-04-Producers-consumers-RabbitMQ origin/05-Gestion-credenciales
 ```
 
 ### 2. Aplicar ese cambio en Scattered
 
-Crea la rama del capítulo a partir de la anterior y aplica el diff del original. El diff nombra todo `Distribt`, así que hay que adaptarlo, y se excluye el `README.md` porque el de Scattered se escribe a mano:
+Crea la rama del capítulo a partir de la anterior y aplica el diff del original. El diff nombra todo `Distribt`, así que hay que adaptarlo, y se excluyen el `README.md` y `assets/` porque en Scattered se escriben a mano:
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow3 features/flow2
+git switch -c features/flow4 features/flow3
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/02-patron-api-gateway origin/03-04-Producers-consumers-RabbitMQ -- . ':(exclude)README.md' \
+git diff origin/03-04-Producers-consumers-RabbitMQ origin/05-Gestion-credenciales -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/03.patch
+  > /tmp/05.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/03.patch   # comprobar que aplica limpio
-git apply /tmp/03.patch
+git apply --check /tmp/05.patch   # comprobar que aplica limpio
+git apply /tmp/05.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -86,20 +92,22 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 
 - `dotnet build Scattered.sln` sin errores. Todos los proyectos tienen `TreatWarningsAsErrors`, así que un paquete de 2022 con vulnerabilidades conocidas (aviso `NU1903`) rompe la compilación: sube a la versión parcheada más cercana y anótalo en la guía del capítulo (ver el caso de YARP en el [capítulo 2](flow2.md#particularidades)).
 - Los servicios arrancan y las funcionalidades nuevas del capítulo responden: escribe su flujo end to end.
-- A partir del capítulo 3 hace falta la infraestructura de `docker-compose.yaml` (RabbitMQ, y después Vault, Consul, Graylog…). Las imágenes de 2022 pueden no existir ya o haber cambiado; `docs/cambios/README.md` en `main` documenta los arreglos que hicieron falta para la versión final.
+- A partir del capítulo 3 hace falta la infraestructura de `docker-compose.yaml` (RabbitMQ, y después Vault, Consul, Graylog…). Las imágenes de 2022 pueden comportarse distinto hoy (ver el usuario de RabbitMQ en el [capítulo 3–4](flow3.md#particularidades)); `docs/cambios/README.md` en `main` documenta los arreglos que hicieron falta para la versión final.
+- El código del original a veces queda a medias entre capítulos. Si algo falla, compruébalo también en la rama original antes de corregirlo, y documéntalo como *problema heredado* (ver [capítulo 3–4](flow3.md#problemas-heredados-del-original)).
 
 ### 4. Documentar y cerrar el capítulo
 
 1. Crea `docs/flow/flowN.md` y añádelo a [Capítulos replicados](#capítulos-replicados).
 2. Actualiza el README principal según su sección *Cómo evoluciona este README*.
-3. Haz commit en `features/flowN` y mergea en `features/integration-flow`.
+3. Si el capítulo toca `docker-compose.yaml`, actualiza [contenedores.md](contenedores.md#cómo-actualizar-este-documento). Regenera los PDF de `docs/pdf/`.
+4. Haz commit en `features/flowN` y mergea en `features/integration-flow`.
 
 ### 5. Comparar con la versión final
 
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow2 main
+git diff -M --stat features/flow3 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.

@@ -2,7 +2,7 @@
 
 En el capítulo 1 cada microservicio era una isla y el cliente tenía que conocer el puerto de cada uno. En este capítulo las APIs pública y privada se convierten en **API Gateways** con [YARP](https://github.com/microsoft/reverse-proxy): el cliente solo habla con el gateway y este reenvía la petición al microservicio que corresponde.
 
-[← Capítulo 1](flow1.md) · [Índice del flujo](README.md)
+[← Capítulo 1](flow1.md) · [Índice del flujo](README.md) · [Siguiente: capítulos 3–4 →](flow3.md)
 
 ## Contenido
 
