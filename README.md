@@ -4,41 +4,39 @@
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow8`)** replica la rama [`09-Event-sourcing`](https://github.com/ElectNewt/Distribt/tree/09-Event-sourcing) del proyecto original (commit `66a0e62`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow9`)** replica la rama [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) del proyecto original, que apunta al mismo commit que la 09 (`66a0e62`). El código es el del capítulo 9; esta rama solo añade documentación. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow8` (nace de `features/flow7`) |
-| Capítulo del curso | 9 · [Event Sourcing](https://www.netmentor.es/entrada/event-sourcing-explicado-facil) con MongoDB |
-| Rama original | [`09-Event-sourcing`](https://github.com/ElectNewt/Distribt/tree/09-Event-sourcing) (`66a0e62`; `10-Consistencia-eventual` apunta al mismo commit) |
-| Qué hay | 2 API Gateways con YARP; suscripciones y pedidos por RabbitMQ; Products con CQRS (MySQL + MongoDB); **Orders con Event Sourcing**: los pedidos se guardan como eventos en MongoDB y su estado se reconstruye al leer. Credenciales en Vault, direcciones en Consul, logs en Graylog |
-| Qué falta | Respuestas de API unificadas (cap. 11), SAGA, health checks y observabilidad. El agregado de pedidos no valida transiciones (problema heredado) |
-| Infraestructura | RabbitMQ, Vault, Consul, Graylog (+2), MySQL y MongoDB en Docker: `./tools/local-development/up.sh` (sin contenedores nuevos) |
-| Guía del capítulo | [docs/flow/flow8.md](docs/flow/flow8.md) |
-| Siguiente capítulo | 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) (`10-Consistencia-eventual`, mismo commit que este) |
+| Rama | `features/flow9` (nace de `features/flow8`; **sin cambios de código**) |
+| Capítulo del curso | 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios |
+| Rama original | [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) (`66a0e62`, igual que `09-Event-sourcing`) |
+| Qué hay | Lo mismo que en el capítulo 9: gateways con YARP, suscripciones y pedidos por RabbitMQ, Products con CQRS, Orders con Event Sourcing, Vault, Consul y Graylog. La guía mide **cuánto tarda** cada parte en ponerse al día |
+| Qué falta | Respuestas de API unificadas (cap. 11), SAGA, health checks y observabilidad |
+| Infraestructura | La del capítulo 9: `./tools/local-development/up.sh` |
+| Guía del capítulo | [docs/flow/flow9.md](docs/flow/flow9.md) |
+| Siguiente capítulo | 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con ROP (`11-unificar-respuestas-api`) |
 
 ## Qué cambió en este capítulo
 
-Respecto a `features/flow7` ([capítulo 8](docs/flow/flow7.md)) Orders deja de inventarse los pedidos y los guarda con **Event Sourcing**: en vez del estado, guarda **lo que ha pasado** (`OrderCreated`, `OrderPaid`, `OrderDispatched`) en una colección de MongoDB que hace de *event store*. Para leer un pedido, reproduce sus eventos en orden.
+Respecto a `features/flow8` ([capítulo 9](docs/flow/flow8.md)) **no cambia el código**. El capítulo del curso es conceptual: explica la **consistencia eventual**, que Scattered practica desde el capítulo 3–4. Cuando los datos viajan por mensajes, una escritura confirmada no se ve en todas partes a la vez; el sistema acaba siendo consistente, pero no al instante. La guía lo mide sobre el código real:
 
-| Cambio | Dónde | Para qué |
-|---|---|---|
-| `Scattered.Shared.EventSourcing` (nuevo) | `src/Shared/` | `Aggregate`, `IApply<T>`, `AggregateRepository<T>` y el event store en MongoDB con control de versión |
-| Agregado `OrderDetails` + eventos | `Orders/Aggregates`, `Orders/Events` | El pedido cambia de estado aplicando eventos: `Created → Paid → Dispatched → Completed` |
-| `OrderController` + 5 servicios | `Orders/Controllers`, `Orders/Services` | `POST /order/create`, `GET /order/{id}`, `PUT markaspaid` / `markasdispatched` / `markasdelivered` |
-| Colección `EventsOrders` | `tools/mongodb/mongo-init.js`, `appsettings.json` de Orders | Un documento por evento, índice único `(tipo, id, versión)` |
-| DTOs nuevos | `Orders.Dto` | `CreateOrderRequest`, `DeliveryDetails`, `PaymentInformation`, `ProductQuantity`, `OrderResponse` |
+| Medición | Resultado |
+|---|---|
+| `PUT` en Products (MySQL) y lectura inmediata (MongoDB) | La escritura responde en ~60 ms; la lectura ve el cambio a los ~1,5 s de mediana (hasta 3 s). En 7 de 10 rondas se lee primero el dato antiguo |
+| Products.Consumer parado | La escritura sigue funcionando; la lectura devuelve el dato antiguo indefinidamente y se pone al día 2,9 s después de arrancar el consumer |
+| Orders y Subscriptions con sus consumers parados | `202` y `200` igualmente; el pedido ya se puede consultar (el event store es la fuente de verdad) y los avisos se procesan 1,1 s después de arrancar los consumers |
+| Con la fuga de conexiones acumulada (1346 conexiones) | Un `PUT` pasa de ~60 ms a 2,6 s |
 
 ```text
-Antes (capítulo 8)                              Ahora (capítulo 9)
-POST /order  → publica y responde 202           POST /order/create → OrderCreated (v1) ──▶ MongoDB EventsOrders
-GET  /order/{id} → pedido inventado             PUT  markaspaid       → OrderPaid (v2)       ──▶ (se añade, nunca se modifica)
-(nada se guarda)                                GET  /order/{id}      → lee v1..vN y los aplica → Status = Paid
+Escritura confirmada                     ...un instante después...              Consistente
+PUT /product/… → 200 (MySQL)  ──▶  product-domain-queue  ──▶  Products.Consumer  ──▶  MongoDB (lectura)
+                  GET /product/{id} durante la ventana  →  dato ANTIGUO
 ```
 
-Lo que conviene saber al probarlo: los cambios de estado son `PUT …/markaspaid?orderId={id}` (el id va en la *query*); "entregar" registra por error otro envío (el pedido nunca llega a `Completed`) y el agregado no valida transiciones, así que un pedido enviado puede volver a `Paid`; la concurrencia optimista sí funciona (30 pagos simultáneos guardan versiones sin repetir). Cambio propio necesario: con el `MongoDB.Driver` 2.19 que Scattered usa desde el capítulo 8, el event store necesita permitir los tipos `Scattered.*` en el `ObjectSerializer`. Detalle de cada cambio y el flujo end to end en **[docs/flow/flow8.md](docs/flow/flow8.md)**.
+Lo que el código todavía no resuelve (y la guía detalla): un producto creado nunca converge a la lectura, un mensaje que falla se queda atascado sin ir a la *dead-letter*, y `getorderstatus` no está implementado, así que el cliente no tiene forma de saber cuándo está todo al día. Detalle en **[docs/flow/flow9.md](docs/flow/flow9.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -52,7 +50,7 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow8`):
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow9`, el mismo código que el capítulo 9):
 
 ![ScatteredDiagram](assets/diagram.png)
 
@@ -68,7 +66,7 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 ## Progreso del curso
 
 <!-- progress:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
-Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **9 de 17 capítulos** replicados.
+Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **10 de 17 capítulos** replicados.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
 - [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
@@ -77,8 +75,8 @@ Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en
 - [x] 6 · [Service discovery / registry](https://www.netmentor.es/entrada/service-registry-discovery-consul) con Consul · [guía](docs/flow/flow5.md)
 - [x] 7 · [Sistema de logs](https://www.netmentor.es/entrada/servicio-logs-graylog) con Graylog y Serilog · [guía](docs/flow/flow6.md)
 - [x] 8 · [CQRS](https://www.netmentor.es/entrada/patron-cqrs-explicado-10-minutos) para separar lecturas de escrituras · [guía](docs/flow/flow7.md)
-- [x] 9 · [Event Sourcing](https://www.netmentor.es/entrada/event-sourcing-explicado-facil) con MongoDB · [guía](docs/flow/flow8.md) **← esta rama**
-- [ ] 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios
+- [x] 9 · [Event Sourcing](https://www.netmentor.es/entrada/event-sourcing-explicado-facil) con MongoDB · [guía](docs/flow/flow8.md)
+- [x] 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios · [guía](docs/flow/flow9.md) **← esta rama**
 - [ ] 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming)
 - [ ] 12 · [Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas
 - [ ] 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net)
@@ -181,7 +179,7 @@ curl -k -X PUT "$GW/markaspaid?orderId=<id>"
 curl -k $GW/<id>                                   # orderStatus: Paid
 ```
 
-Los eventos de cada pedido se ven en MongoDB, colección `scattered.EventsOrders` (filtra por `TransactionId`, que empieza por el id). Products (CQRS) se ejecuta como en el [capítulo 8](docs/flow/flow7.md#cómo-ejecutarla). Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow8.md](docs/flow/flow8.md#cómo-ejecutarla).
+Los eventos de cada pedido se ven en MongoDB, colección `scattered.EventsOrders` (filtra por `TransactionId`, que empieza por el id). Products (CQRS) se ejecuta como en el [capítulo 8](docs/flow/flow7.md#cómo-ejecutarla). Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow8.md](docs/flow/flow8.md#cómo-ejecutarla); cómo reproducir las mediciones de consistencia eventual, en [docs/flow/flow9.md](docs/flow/flow9.md#cómo-reproducirlo).
 
 ## Cómo evoluciona este README
 

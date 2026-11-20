@@ -3,9 +3,9 @@
 Hasta ahora, guardar un dato significaba sobrescribir su estado: el producto 3 *tiene* este nombre. Con **Event Sourcing** no se guarda el estado, sino **la lista de cosas que han pasado**: el pedido se creó, se pagó, se envió. El estado actual se calcula reproduciendo esos eventos en orden, y nunca se borra ni se modifica ninguno. En este capítulo, Orders deja de inventarse los pedidos y pasa a guardarlos así, en una colección de MongoDB que hace de **event store**, con una librería genérica nueva, `Shared.EventSourcing`.
 
 <!-- nav:start -->
-[← Capítulo 8](flow7.md) · [Índice del flujo](README.md) · Siguiente: capítulo 10 (pendiente)
+[← Capítulo 8](flow7.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 10 →](flow9.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · **9** · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · **9** · [10](flow9.md) · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido
