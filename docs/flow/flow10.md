@@ -3,9 +3,9 @@
 Hasta ahora cada endpoint respondía a su manera: un `Guid` suelto, un `true`, un objeto, un `CreatedResult` sin cuerpo o una traza de excepción. En este capítulo las APIs adoptan un **formato común** para todas las respuestas, `ResultDto<T>` (`value`, `errors`, `success`), y la lógica pasa a encadenarse con **Railway Oriented Programming** (ROP): cada paso devuelve un `Result<T>` que va por la vía del éxito o por la del error, y el controller lo convierte en la respuesta HTTP adecuada. La rama trae además lo que dejó pendiente la consistencia eventual: **Orders conoce los nombres de los productos** gracias a los mensajes de integración de Products, y un producto creado ya llega a la vista de lectura.
 
 <!-- nav:start -->
-[← Capítulo 10](flow9.md) · [Índice del flujo](README.md) · Siguiente: capítulo 12 (pendiente)
+[← Capítulo 10](flow9.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 12 →](flow11.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · **11** · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · **11** · [12](flow11.md) · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

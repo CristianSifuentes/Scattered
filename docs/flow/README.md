@@ -23,8 +23,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 9 | [Event Sourcing](flow8.md) | `features/flow8` | [`09-Event-sourcing`](https://github.com/ElectNewt/Distribt/tree/09-Event-sourcing) | Orders guarda sus pedidos como eventos en MongoDB (event store) y reconstruye el estado al leer; nueva librería Shared.EventSourcing |
 | 10 | [Consistencia eventual](flow9.md) | `features/flow9` | [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) | Sin código nuevo (mismo commit que el 9): guía con mediciones de la consistencia eventual en Products, Orders y Subscriptions |
 | 11 | [Respuestas de API unificadas](flow10.md) | `features/flow10` | [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api) | Respuestas unificadas (ResultDto) con ROP; Orders guarda los nombres de producto que le llegan por integración; Graylog desde Consul |
+| 12 | [Patrón SAGA](flow11.md) | `features/flow11` | [`12-Saga`](https://github.com/ElectNewt/Distribt/tree/12-Saga) | SAGA solo en teoría (sin código en el original); GlobalSettings.msbuild común para Shared y GetByIdOrDefaultAsync en el event sourcing |
 
-Siguiente: capítulo 12 · Patrón SAGA (rama `features/flow11`, original [`12-Saga`](https://github.com/ElectNewt/Distribt/tree/12-Saga)).
+Siguiente: capítulo 13 · Health checks (rama `features/flow12`, original [`13-Health-Checks`](https://github.com/ElectNewt/Distribt/tree/13-Health-Checks)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -74,9 +75,9 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/11-unificar-respuestas-api..origin/12-Saga
-git diff --stat  origin/11-unificar-respuestas-api origin/12-Saga
-git diff         origin/11-unificar-respuestas-api origin/12-Saga
+git log --oneline origin/12-Saga..origin/13-Health-Checks
+git diff --stat  origin/12-Saga origin/13-Health-Checks
+git diff         origin/12-Saga origin/13-Health-Checks
 ```
 
 ### 2. Aplicar ese cambio en Scattered
@@ -85,16 +86,16 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow11 features/flow10
+git switch -c features/flow12 features/flow11
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/11-unificar-respuestas-api origin/12-Saga -- . ':(exclude)README.md' ':(exclude)assets' \
+git diff origin/12-Saga origin/13-Health-Checks -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/12.patch
+  > /tmp/13.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/12.patch   # comprobar que aplica limpio
-git apply /tmp/12.patch
+git apply --check /tmp/13.patch   # comprobar que aplica limpio
+git apply /tmp/13.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -129,7 +130,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow10 main
+git diff -M --stat features/flow11 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.
