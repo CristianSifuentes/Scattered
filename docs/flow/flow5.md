@@ -5,7 +5,7 @@ Hasta el capítulo 5 cada servicio sabía **dónde** estaba lo que necesitaba po
 <!-- nav:start -->
 [← Capítulo 5](flow4.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 7 →](flow6.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · **6** · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · **6** · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

@@ -3,9 +3,9 @@
 Una **SAGA** coordina una operación que abarca varios servicios, cada uno con su propia base de datos, sin una transacción común. En lugar de un `COMMIT` global, la operación se divide en pasos locales; si uno falla, se ejecutan **compensaciones** que deshacen los pasos ya hechos. En el original, este capítulo **no añade código de SAGA**: el commit `1c53dbf` *add saga to readme* solo enlaza el [artículo](https://www.netmentor.es/entrada/patron-saga), que explica el patrón en teoría. Lo que sí cambia en el código son dos mejoras de mantenimiento: un `GlobalSettings.msbuild` común a las librerías de `Shared` y un `GetByIdOrDefaultAsync` que cierra el TODO `#27` del event sourcing.
 
 <!-- nav:start -->
-[← Capítulo 11](flow10.md) · [Índice del flujo](README.md) · Siguiente: capítulo 13 (pendiente)
+[← Capítulo 11](flow10.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 13 →](flow12.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · **12** · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · **12** · [13](flow12.md) · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

@@ -1,5 +1,6 @@
 using Scattered.Services.Orders.Aggregates;
 using Scattered.Services.Orders.BusinessLogic;
+using Scattered.Services.Orders.BusinessLogic.HealthChecks;
 using Scattered.Services.Orders.Data;
 using Scattered.Services.Orders.Services;
 
@@ -16,6 +17,7 @@ WebApplication app = DefaultScatteredWebApplication.Create(args, webappBuilder =
     webappBuilder.Services.AddScoped<IOrderDispatchedService, OrderDispatchedService>();
     webappBuilder.Services.AddScoped<IOrderDeliveredService, OrderDeliveredService>();
     webappBuilder.Services.AddProductService(webappBuilder.Configuration);
+    webappBuilder.Services.AddHealthChecks().AddCheck<ProductsHealthCheck>(nameof(ProductsHealthCheck));
 });
 
 

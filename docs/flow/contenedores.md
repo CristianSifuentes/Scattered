@@ -10,11 +10,11 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow11` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow12` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
-| `rabbitmq` | `rabbitmq:3.9-management-alpine` (3.9.29) | **Corriendo** | `features/flow3` (18-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd`. Usuarios: `ScatteredAdmin` y los `token-…` temporales que crea Vault para el gateway |
+| `rabbitmq` | `rabbitmq:3.8-management-alpine` (3.8.34) | **Corriendo** | `features/flow12` (20-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd`. Usuarios: `ScatteredAdmin` y los `token-…` temporales que crea Vault para el gateway |
 | `vault` | `hashicorp/vault:latest` (2.2.1) | **Corriendo** | `features/flow4` (18-nov) | `dumb-init` → `docker-entrypoint.sh` → `vault server -dev -dev-root-token-id=vault-scattered-token`. Motores `secret/` (KV con `secret/rabbitmq`) y `rabbitmq/` (rol `scattered-role`), cargados con `tools/vault/config.sh` |
 | `consul` | `hashicorp/consul:latest` (2.1.0) | **Corriendo** | `features/flow5` (19-nov) | `dumb-init` → `docker-entrypoint.sh` → `consul agent -data-dir=/consul/data -config-dir=/consul/config -dev -client 0.0.0.0`. Servicios registrados con `tools/consul/config.sh`: `RabbitMQ`, `SecretManager`, `EmailsApi`, `OrdersApi`, `ProductsApi`, `SubscriptionsApi` |
 | `graylog` | `graylog/graylog:4.2.5` (amd64, emulado) | **Corriendo** (healthy) | `features/flow6` (19-nov) | `tini` → `wait-for-it elasticsearch:9200` → `docker-entrypoint.sh` → servidor Graylog (Java). Un input *GELF UDP* en `12201`, creado a mano |
@@ -29,14 +29,14 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow11` en la copi
 
 - Los 4 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow11` necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `features/flow12` necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
 - `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 ✔ | 13 | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 ✔ | 13 ✔ | 14–16 | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -119,9 +119,11 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 
 - **No cambia nada** en los contenedores: el capítulo es teórico y su código solo reorganiza la configuración de los proyectos.
 
-### Capítulo 13 · Health checks (pendiente)
+### Capítulo 13 · Health checks · `features/flow12` ✔
 
-- No nace ningún contenedor. RabbitMQ baja a la imagen 3.8 y los servicios exponen `/health` comprobando RabbitMQ, MySQL, MongoDB, Consul y Vault.
+- No nace ningún contenedor. Los servicios exponen `/health` y `/health-ui` comprobando RabbitMQ, MySQL y MongoDB (y Orders, la API de lectura de Products).
+- **`rabbitmq` baja a la imagen `3.8-management-alpine`** (3.8.34) y cambia `rabbitmq.config` (formato Erlang) por `rabbitmq.conf` (formato ini), que define el usuario por defecto y carga `definitions.json` con `management.load_definitions`. Con este formato RabbitMQ crea el usuario antes de aplicar las definiciones, así que Scattered retira el usuario que declaraba en `definitions.json` desde el capítulo 3–4.
+- Al cambiar la imagen, `docker compose up -d` **recrea** el contenedor: arranca vacío (sin mensajes, sin los usuarios `token-…` de Vault ni enlaces antiguos) y vuelve a cargar `definitions.json`.
 
 ### Capítulo 14 · Monitorización (pendiente)
 
@@ -139,11 +141,11 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 | | |
 |---|---|
 | Nace / se usa | Capítulo 1 / capítulo 3–4 |
-| Imagen | `rabbitmq:3.9-management-alpine` en `features/flow3`; `3.8.34-management-alpine` en `main` |
+| Imagen | `rabbitmq:3.9-management-alpine` en los capítulos 3–12; `3.8-management-alpine` desde el 13; `3.8.34-management-alpine` en `main` |
 | Proceso | `docker-entrypoint.sh rabbitmq-server` → `beam.smp` (Erlang) + `epmd` |
 | Puertos | `5672` AMQP (lo usan los servicios) · `15672` web de gestión |
 | Acceso | http://localhost:15672 · `ScatteredAdmin` / `ScatteredPass` |
-| Configuración | `tools/rabbitmq/rabbitmq.config` y `definitions.json` montados en `/etc/rabbitmq/` |
+| Configuración | `tools/rabbitmq/rabbitmq.config` (capítulos 3–12) o `rabbitmq.conf` (desde el 13) y `definitions.json`, montados en `/etc/rabbitmq/` |
 | Para qué | Lleva los mensajes entre servicios: integración (entre microservicios) y dominio (dentro de uno). En `main` también expone métricas en `15692` para Prometheus |
 
 ### `vault` · secretos
@@ -287,6 +289,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-20 | `features/flow12` | Capítulo 13: `rabbitmq` recreado con la imagen 3.8 y `rabbitmq.conf`; health checks en los servicios |
 | 2026-11-20 | `features/flow11` | Capítulo 12: sin cambios de contenedores |
 | 2026-11-20 | `features/flow10` | Capítulo 11: sin contenedores nuevos; Graylog registrado en Consul, `ProductName` en MongoDB, `rabbitmq` reiniciado y enlace antiguo de `order.exchange` eliminado |
 | 2026-11-19 | `features/flow9` | Capítulo 10: sin cambios de contenedores (rama solo de documentación) |

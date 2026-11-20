@@ -1,6 +1,5 @@
 using Scattered.Shared.Communication.RabbitMQ;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Scattered.Shared.Setup.Services;
 
@@ -10,7 +9,7 @@ public static class ServiceBus
         IConfiguration configuration)
     {
         serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName,
-            configuration);
+            configuration, "IntegrationPublisher");
         serviceCollection.AddRabbitMQPublisher<IntegrationMessage>();
     }
 
@@ -39,21 +38,24 @@ public static class ServiceBus
     public static void AddServiceBusIntegrationConsumer(this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName, configuration);
+        serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName, configuration,
+            "IntegrationConsumer");
         serviceCollection.AddRabbitMqConsumer<IntegrationMessage>();
     }
 
     public static void AddServiceBusDomainPublisher(this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName, configuration);
+        serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName, configuration,
+            "DomainPublisher");
         serviceCollection.AddRabbitMQPublisher<DomainMessage>();
     }
 
     public static void AddServiceBusDomainConsumer(this IServiceCollection serviceCollection,
         IConfiguration configuration)
     {
-        serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName, configuration);
+        serviceCollection.AddRabbitMQ(GetRabbitMqSecretCredentials, GetRabbitMQHostName, configuration,
+            "DomainConsumer");
         serviceCollection.AddRabbitMqConsumer<DomainMessage>();
     }
 
