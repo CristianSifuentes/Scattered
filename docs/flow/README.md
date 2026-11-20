@@ -33,8 +33,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 
 Documentos transversales, que se actualizan con cada capítulo:
 
+- [Resumen de los 17 capítulos](resumen.md): qué cambia y qué no cambia en cada uno, de un vistazo.
 - [Contenedores de Docker por capítulo](contenedores.md): qué contenedor nace en cada capítulo, qué corre dentro y su estado actual.
-- PDF de cada guía y de los contenedores en [`docs/pdf/`](../pdf/): `flowN.pdf` (qué cambió y qué no, archivo por archivo) y `contenedores.pdf`.
+- PDF de cada guía y de los contenedores en [`docs/pdf/`](../pdf/): `flowN.pdf` (qué cambió y qué no, archivo por archivo), `resumen.pdf` y `contenedores.pdf`.
 
 ## Ramas de Scattered
 
