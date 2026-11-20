@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
 
 namespace Scattered.Shared.Databases.MongoDb;
 
@@ -23,6 +23,17 @@ public static class MongoDbDependencyInjection
     public static IServiceCollection AddMongoDbDatabaseConfiguration(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
         serviceCollection.Configure<DatabaseConfiguration>(configuration.GetSection("Database:MongoDb"));
+        return serviceCollection;
+    }
+
+
+    public static IServiceCollection AddMongoHealthCheck(this IServiceCollection serviceCollection, string name)
+    {
+        ServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
+        string mongoConnectionString = serviceProvider.GetRequiredService<IMongoDbConnectionProvider>().GetMongoConnectionString();
+        
+        serviceCollection.AddHealthChecks().AddMongoDb(mongoConnectionString, name, HealthStatus.Unhealthy);
+        
         return serviceCollection;
     }
     

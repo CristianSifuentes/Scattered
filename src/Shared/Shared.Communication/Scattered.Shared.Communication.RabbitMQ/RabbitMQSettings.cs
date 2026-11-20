@@ -1,3 +1,5 @@
+using RabbitMQ.Client;
+
 namespace Scattered.Shared.Communication.RabbitMQ;
 
 public class RabbitMQSettings
@@ -16,7 +18,7 @@ public class RabbitMQSettings
     {
         Hostname = hostname;
     }
-}
+ }
 
 public record RabbitMQCredentials
 {

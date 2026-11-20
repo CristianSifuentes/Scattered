@@ -10,7 +10,7 @@ public static class OrdersBusinessLogicDependencyInjection
 {
     public static void AddProductService(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        serviceCollection.AddScatteredMongoDbConnectionProvider(configuration);
+        serviceCollection.AddScatteredMongoDbConnectionProvider(configuration, "productStore");
         serviceCollection.AddScoped<IProductRepository, ProductRepository>();
         serviceCollection.AddScoped<IProductNameService, ProductNameService>();
         serviceCollection.AddHttpClient();

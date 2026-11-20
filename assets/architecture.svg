@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1090" width="1400" height="1090" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-  <title>Scattered - Arquitectura (features/flow11 · 12-Saga)</title>
+  <title>Scattered - Arquitectura (features/flow12 · 13-Health-Checks)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
@@ -74,7 +74,7 @@
 
   <rect width="1400" height="1090" rx="18" fill="#0f172a"/>
   <text x="40" y="50" fill="#f8fafc" font-size="24" font-weight="700">Scattered</text>
-  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow11 (12-Saga): SAGA en teoría + GlobalSettings</text>
+  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow12 (13-Health-Checks): /health en cada servicio</text>
 
   <!-- Leyenda -->
   <rect x="40" y="72" width="34" height="20" rx="5" class="service"/>
@@ -236,13 +236,13 @@
   <rect class="panel" x="40" y="860" width="1320" height="200" rx="16"/>
   <text x="62" y="892" fill="#f8fafc" font-size="18" font-weight="600">Común</text>
   <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 10 proyectos ejecutables</text>
-  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 13 en adelante: health checks, OpenTelemetry, API key, rate limiting…</text>
+  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 14 en adelante: OpenTelemetry, Prometheus, Grafana, Zipkin, API key…</text>
 
   <rect class="card" x="60" y="910" width="330" height="130" rx="12"/>
   <text class="card-text" x="225" y="942">Scattered.Shared.Setup</text>
   <rect class="tag" x="115" y="955" width="220" height="24" rx="12"/>
   <text class="tag-text" x="225" y="971">DefaultScatteredWebApplication</text>
-  <text class="card-note" x="225" y="1003">API/Create() · ROP (ResultDto) · SelectAsync</text>
+  <text class="card-note" x="225" y="1003">API/Create() · ROP · /health + /health-ui</text>
   <text class="card-note" x="225" y="1023">Services/ · Databases/ · + Shared.EventSourcing</text>
 
   <rect class="card" x="405" y="910" width="250" height="130" rx="12" style="stroke:#34d399"/>
@@ -262,7 +262,7 @@
   <rect class="card" x="915" y="910" width="205" height="130" rx="12"/>
   <text class="card-text" x="1017" y="942">Service bus</text>
   <rect class="tag" x="937" y="955" width="160" height="24" rx="12"/>
-  <text class="tag-text" x="1017" y="971">RabbitMQ 3.9 · Docker</text>
+  <text class="tag-text" x="1017" y="971">RabbitMQ 3.8 · Docker</text>
   <text class="card-note" x="1017" y="1003">Shared.Communication</text>
   <text class="card-note" x="1017" y="1023">(.RabbitMQ) + Serialization</text>
 

@@ -34,7 +34,7 @@
    "summary": "SAGA solo en teoría (sin código en el original); GlobalSettings.msbuild común para Shared y GetByIdOrDefaultAsync en el event sourcing"},
   {"flow": 12, "chapter": "13", "short": "Health checks", "original": "13-Health-Checks",
    "title": "[Health checks](https://www.netmentor.es/entrada/health-checks-asp-net)",
-   "summary": "Health checks"},
+   "summary": "/health y /health-ui en todos los servicios (RabbitMQ, MySQL, MongoDB y Products desde Orders); RabbitMQ 3.8 con rabbitmq.conf"},
   {"flow": 13, "chapter": "14", "short": "Observabilidad", "original": "14-monitorizacion-sistemas-distribuidos",
    "title": "[Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin",
    "summary": "OpenTelemetry, Prometheus, Grafana y Zipkin"},

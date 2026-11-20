@@ -1,5 +1,8 @@
 ﻿using Scattered.Shared.Logging;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -12,7 +15,9 @@ public static class DefaultScatteredWebApplication
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-
+        builder.Configuration.AddConfiguration(HealthCheckHelper.BuildBasicHealthCheck());
+        builder.Services.AddHealthChecks();
+        builder.Services.AddHealthChecksUI().AddInMemoryStorage();
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -40,6 +45,19 @@ public static class DefaultScatteredWebApplication
             webApp.UseSwagger();
             webApp.UseSwaggerUI();
         }
+
+        webApp.MapHealthChecks("/health");
+
+        webApp.UseHealthChecks("/health", new HealthCheckOptions()
+        {
+            Predicate = _ => true,
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
+        
+        webApp.UseHealthChecksUI(config =>
+        {
+            config.UIPath = "/health-ui";            
+        });
 
 
         webApp.UseHttpsRedirection();
