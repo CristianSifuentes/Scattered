@@ -15,6 +15,12 @@
     <ProjectReference Include="..\Scattered.Shared.Secrets\Scattered.Shared.Secrets.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Serialization\Scattered.Shared.Serialization.csproj" />
     <ProjectReference Include="..\Shared.Communication\Scattered.Shared.Communication.RabbitMQ\Scattered.Shared.Communication.RabbitMQ.csproj" />
+    <ProjectReference Include="..\Shared.Databases\Scattered.Shared.Databases.MongoDb\Scattered.Shared.Databases.MongoDb.csproj" />
+    <ProjectReference Include="..\Shared.Databases\Scattered.Shared.Databases.MySql\Scattered.Shared.Databases.MySql.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Scrutor" Version="4.1.0" />
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,10 @@ register() {
 
 register '{"Name":"RabbitMQ","Address":"localhost"}'
 register '{"Name":"SecretManager","Address":"http://localhost","Port":8200}'
+register '{"Name":"MySql","Address":"localhost","Port":3307}'
+register '{"Name":"MongoDb","Address":"localhost","Port":27017}'
 register '{"Name":"EmailsApi","Address":"http://localhost","Port":50120}'
+register '{"Name":"ProductsApiWrite","Address":"http://localhost","Port":50320}'
+register '{"Name":"ProductsApiRead","Address":"http://localhost","Port":50321}'
 register '{"Name":"OrdersApi","Address":"http://localhost","Port":50220}'
-register '{"Name":"ProductsApi","Address":"http://localhost","Port":50320}'
 register '{"Name":"SubscriptionsApi","Address":"http://localhost","Port":50420}'

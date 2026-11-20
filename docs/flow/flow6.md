@@ -3,9 +3,9 @@
 Con 8 procesos repartidos, buscar un error mirando la consola de cada uno deja de ser viable. En este capítulo los servicios empiezan a usar **Serilog** y pueden enviar sus logs a **Graylog**, una plataforma que los recibe de todos los procesos, los guarda en Elasticsearch y permite buscarlos desde una sola web. De paso, la rama arregla **Orders**: deja de devolver 500, publica un **mensaje de dominio** al crear un pedido y estrena su propio consumer.
 
 <!-- nav:start -->
-[← Capítulo 6](flow5.md) · [Índice del flujo](README.md) · Siguiente: capítulo 8 (pendiente)
+[← Capítulo 6](flow5.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 8 →](flow7.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · **7** · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · **7** · [8](flow7.md) · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

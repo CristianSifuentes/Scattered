@@ -1,6 +1,6 @@
 using Scattered.Services.Subscriptions.Dtos;
 
-WebApplication app = DefaultScatteredWebApplication.Create(webappBuilder =>
+WebApplication app = DefaultScatteredWebApplication.Create(args, webappBuilder =>
 {
     webappBuilder.Services.AddReverseProxy()
         .LoadFromConfig(webappBuilder.Configuration.GetSection("ReverseProxy"));

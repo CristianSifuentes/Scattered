@@ -1,11 +1,8 @@
 using Scattered.Services.Orders.Consumer.Handler;
 
-WebApplication app = DefaultScatteredWebApplication.Create(x =>
+WebApplication app = DefaultScatteredWebApplication.Create(args, x =>
 {
-    x.Services.AddHandlers(new List<IMessageHandler>()
-    {
-        new OrderCreatedHandler(),
-    });
+    x.Services.AddHandlersInAssembly<OrderCreatedHandler>();
     x.Services.AddServiceBusDomainConsumer(x.Configuration);
 });
 
