@@ -3,9 +3,9 @@
 En el capítulo 2 toda la comunicación era **síncrona**: el cliente llama al gateway, el gateway llama a un servicio y espera la respuesta. En estos capítulos aparece la comunicación **asíncrona**: el gateway publica un mensaje en RabbitMQ y responde enseguida; un proceso distinto (el *consumer*) lo recoge cuando puede y lo procesa. Productor y consumidor ya no necesitan estar vivos a la vez.
 
 <!-- nav:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
-[← Capítulo 2](flow2.md) · [Índice del flujo](README.md) · Siguiente: capítulo 5 (pendiente)
+[← Capítulo 2](flow2.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 5 →](flow4.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · **3–4** · 5 · 6 · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · **3–4** · [5](flow4.md) · 6 · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

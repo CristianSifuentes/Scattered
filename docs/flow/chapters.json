@@ -10,7 +10,7 @@
    "summary": "Comunicación asíncrona: el gateway publica las suscripciones y un consumer las procesa"},
   {"flow": 4, "chapter": "5", "short": "Gestión de credenciales", "original": "05-Gestion-credenciales",
    "title": "[Gestión de credenciales](https://www.netmentor.es/entrada/gestion-credenciales-vault) con Vault",
-   "summary": "Secretos con Vault"},
+   "summary": "Las credenciales de RabbitMQ salen de Vault: secreto KV para el consumer y usuario dinámico para el gateway"},
   {"flow": 5, "chapter": "6", "short": "Service discovery", "original": "06-Service-discovery-registry",
    "title": "[Service discovery / registry](https://www.netmentor.es/entrada/service-registry-discovery-consul) con Consul",
    "summary": "Service discovery con Consul"},

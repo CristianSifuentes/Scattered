@@ -10,12 +10,12 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-18** con `features/flow3` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-18** con `features/flow4` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
-| `rabbitmq` | `rabbitmq:3.9-management-alpine` (3.9.29) | **Corriendo** | `features/flow3` (18-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd` (resolución de nombres de nodos Erlang). Colas: `subscription-queue` y `subscription-queue.dead-letter`, ambas con 0 mensajes |
-| `vault` | `hashicorp/vault:latest` | Detenido | `main` (11-nov) | — |
+| `rabbitmq` | `rabbitmq:3.9-management-alpine` (3.9.29) | **Corriendo** | `features/flow3` (18-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd`. Usuarios: `ScatteredAdmin` y los `token-…` temporales que crea Vault para el gateway |
+| `vault` | `hashicorp/vault:latest` (2.2.1) | **Corriendo** | `features/flow4` (18-nov) | `dumb-init` → `docker-entrypoint.sh` → `vault server -dev -dev-root-token-id=vault-scattered-token`. Motores `secret/` (KV con `secret/rabbitmq`) y `rabbitmq/` (rol `scattered-role`), cargados con `tools/vault/config.sh` |
 | `consul` | `hashicorp/consul` | Detenido | `main` (11-nov) | — |
 | `graylog` | `graylog/graylog:4.2.5` | Detenido | `main` (11-nov) | — |
 | `mongo_graylog` | `mongo:4.2` | Detenido | `main` (11-nov) | — |
@@ -27,15 +27,15 @@ Foto de `docker ps -a` tomada el **2026-11-18** con `features/flow3` en la copia
 | `grafana` | `grafana/grafana` | Detenido | `main` (11-nov) | — |
 | `zipkin-traces` | `openzipkin/zipkin:latest` | Detenido | `main` (11-nov) | — |
 
-- Los 11 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
-- Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. El `rabbitmq` de `main` (3.8.34) fue sustituido por el de `features/flow3` (3.9). Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow3` solo necesita `rabbitmq`. Los otros 11 no existen todavía en su `docker-compose.yaml`.
+- Los 10 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
+- Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`) y `vault` (con dependencia de Consul en `main`) se recrearon con la configuración de las ramas `flowN`. Al cambiar de rama: `docker compose up -d --force-recreate`.
+- `features/flow4` necesita `rabbitmq` y `vault`. Los otros 10 no existen todavía en su `docker-compose.yaml`.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 | 6 | 7 | 8 | 9–12 | 13 | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 | 7 | 8 | 9–12 | 13 | 14–16 | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -66,9 +66,12 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 - API Public publica en `api.public.exchange`; `Subscriptions.Consumer` lee de `subscription-queue`.
 - Ajuste propio de Scattered: el usuario `ScatteredAdmin` se declara en `definitions.json` porque la imagen actual no lo crea cuando hay definiciones que cargar (ver [capítulo 3–4](flow3.md#particularidades)).
 
-### Capítulo 5 · Gestión de credenciales (pendiente)
+### Capítulo 5 · Gestión de credenciales · `features/flow4` ✔
 
-- **Nace `vault`**: los servicios dejan de tener las credenciales de RabbitMQ en `appsettings.json` y se las piden a Vault al arrancar.
+- **Nace `vault`** en modo desarrollo (`vault server -dev`, en memoria, token raíz `vault-scattered-token`). Los servicios dejan de tener las credenciales de RabbitMQ en `appsettings.json` y se las piden a Vault: el consumer lee el secreto KV `secret/rabbitmq` al arrancar y el gateway pide al motor `rabbitmq` un usuario temporal (`token-…`) en su primera publicación.
+- `tools/vault/config.sh` carga el secreto y configura el motor; `tools/local-development/up.sh` levanta los contenedores y lo ejecuta. Hay que repetirlo **cada vez que se recrea `vault`**, porque en modo dev empieza vacío.
+- Vault llega a RabbitMQ por la red de Docker Compose (`http://rabbitmq:15672`) con el usuario `ScatteredAdmin` para crear y borrar los usuarios temporales.
+- Ajuste propio de Scattered: la imagen `vault:latest` del original ya no existe en Docker Hub; se usa `hashicorp/vault:latest` (ver [capítulo 5](flow4.md#particularidades)).
 
 ### Capítulo 6 · Service discovery (pendiente)
 
@@ -115,10 +118,11 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 | | |
 |---|---|
 | Nace | Capítulo 5 |
+| Imagen | `hashicorp/vault:latest` (el original usa `vault:latest`, retirada de Docker Hub) |
 | Proceso | `vault server -dev`: un solo nodo, almacenamiento en memoria y ya desbloqueado |
 | Puertos | `8200` API y web |
 | Acceso | http://localhost:8200 · token `vault-scattered-token` |
-| Para qué | Guarda las credenciales de RabbitMQ, MySQL y MongoDB. En modo dev **se pierde todo al reiniciar**: hay que volver a cargar los secretos (`tools/vault/config.sh` en `main`) |
+| Para qué | Guarda las credenciales. En el capítulo 5, solo las de RabbitMQ: un secreto KV (`secret/rabbitmq`, para el consumer) y un motor que crea usuarios temporales (`rabbitmq/creds/scattered-role`, para el gateway). Desde el capítulo 8, también las de MySQL y MongoDB. En modo dev **se pierde todo al reiniciar**: hay que volver a ejecutar `tools/vault/config.sh` |
 
 ### `consul` · service discovery
 
@@ -242,4 +246,5 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-18 | `features/flow4` | Capítulo 5: nace `vault` (`hashicorp/vault`), corriendo junto a `rabbitmq`; 10 contenedores de `main` detenidos |
 | 2026-11-18 | `features/flow3` | Documento creado. Estado: `rabbitmq` corriendo (flow3); 11 contenedores de `main` detenidos. Capítulos 1–4 replicados |
