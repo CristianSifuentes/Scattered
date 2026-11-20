@@ -3,9 +3,9 @@
 En el capítulo 3–4 el usuario y la contraseña de RabbitMQ estaban escritos en el `appsettings.json` de cada servicio. En este capítulo salen del código: los servicios se las piden a **HashiCorp Vault** al arrancar, y solo necesitan saber dónde está Vault y un token para hablar con él. Vault guarda los secretos de dos formas, y el capítulo usa las dos: un **secreto estático** (clave/valor) para el consumer y **credenciales dinámicas**, un usuario de RabbitMQ creado a demanda con caducidad, para el gateway.
 
 <!-- nav:start -->
-[← Capítulo 3–4](flow3.md) · [Índice del flujo](README.md) · Siguiente: capítulo 6 (pendiente)
+[← Capítulo 3–4](flow3.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 6 →](flow5.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · **5** · 6 · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · **5** · [6](flow5.md) · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

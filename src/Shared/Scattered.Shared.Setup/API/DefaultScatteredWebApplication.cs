@@ -1,11 +1,8 @@
-﻿using Scattered.Shared.Secrets;
-using Scattered.Shared.Serialization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Scattered.Shared.Api;
+namespace Scattered.Shared.Setup.API;
 
 public static class DefaultScatteredWebApplication
 {
@@ -18,7 +15,9 @@ public static class DefaultScatteredWebApplication
         builder.Services.AddSwaggerGen();
         builder.Services.AddRouting(x => x.LowercaseUrls = true);
         builder.Services.AddSerializer();
-        builder.Services.AddVaultService(builder.Configuration); 
+        
+        builder.Services.AddServiceDiscovery(builder.Configuration);
+        builder.Services.AddSecretManager(builder.Configuration);
 
         if (webappBuilder != null)
         {

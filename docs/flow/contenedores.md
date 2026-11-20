@@ -10,13 +10,13 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-18** con `features/flow4` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow5` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
 | `rabbitmq` | `rabbitmq:3.9-management-alpine` (3.9.29) | **Corriendo** | `features/flow3` (18-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd`. Usuarios: `ScatteredAdmin` y los `token-…` temporales que crea Vault para el gateway |
 | `vault` | `hashicorp/vault:latest` (2.2.1) | **Corriendo** | `features/flow4` (18-nov) | `dumb-init` → `docker-entrypoint.sh` → `vault server -dev -dev-root-token-id=vault-scattered-token`. Motores `secret/` (KV con `secret/rabbitmq`) y `rabbitmq/` (rol `scattered-role`), cargados con `tools/vault/config.sh` |
-| `consul` | `hashicorp/consul` | Detenido | `main` (11-nov) | — |
+| `consul` | `hashicorp/consul:latest` (2.1.0) | **Corriendo** | `features/flow5` (19-nov) | `dumb-init` → `docker-entrypoint.sh` → `consul agent -data-dir=/consul/data -config-dir=/consul/config -dev -client 0.0.0.0`. Servicios registrados con `tools/consul/config.sh`: `RabbitMQ`, `SecretManager`, `EmailsApi`, `OrdersApi`, `ProductsApi`, `SubscriptionsApi` |
 | `graylog` | `graylog/graylog:4.2.5` | Detenido | `main` (11-nov) | — |
 | `mongo_graylog` | `mongo:4.2` | Detenido | `main` (11-nov) | — |
 | `elasticserach_graylog` | `elasticsearch-oss:7.10.2` | Detenido | `main` (11-nov) | — |
@@ -27,15 +27,15 @@ Foto de `docker ps -a` tomada el **2026-11-18** con `features/flow4` en la copia
 | `grafana` | `grafana/grafana` | Detenido | `main` (11-nov) | — |
 | `zipkin-traces` | `openzipkin/zipkin:latest` | Detenido | `main` (11-nov) | — |
 
-- Los 10 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
-- Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`) y `vault` (con dependencia de Consul en `main`) se recrearon con la configuración de las ramas `flowN`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow4` necesita `rabbitmq` y `vault`. Los otros 10 no existen todavía en su `docker-compose.yaml`.
+- Los 9 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
+- Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
+- `features/flow5` necesita `rabbitmq`, `vault` y `consul`. Los otros 9 no existen todavía en su `docker-compose.yaml`.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 | 7 | 8 | 9–12 | 13 | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 | 8 | 9–12 | 13 | 14–16 | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -73,9 +73,14 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 - Vault llega a RabbitMQ por la red de Docker Compose (`http://rabbitmq:15672`) con el usuario `ScatteredAdmin` para crear y borrar los usuarios temporales.
 - Ajuste propio de Scattered: la imagen `vault:latest` del original ya no existe en Docker Hub; se usa `hashicorp/vault:latest` (ver [capítulo 5](flow4.md#particularidades)).
 
-### Capítulo 6 · Service discovery (pendiente)
+### Capítulo 6 · Service discovery · `features/flow5` ✔
 
-- **Nace `consul`**: cada servicio se registra al arrancar y los gateways y servicios preguntan a Consul dónde está cada uno, en lugar de usar puertos escritos a mano.
+- **Nace `consul`** en modo desarrollo (`consul agent -dev`, un nodo que es servidor y agente). Los servicios dejan de tener en `appsettings.json` la dirección de Vault y el host de RabbitMQ: solo conocen `Discovery:Address = http://localhost:8500` y preguntan por nombre (`SecretManager`, `RabbitMQ`).
+- **Todos los procesos le preguntan al arrancar** (lo hace el arranque común), así que sin Consul no arranca ninguno. Una vez arrancados, guardan la respuesta y siguen funcionando aunque Consul caiga.
+- `tools/consul/config.sh` registra 6 servicios a mano: `RabbitMQ`, `SecretManager` y los 4 microservicios, que todavía no consulta nadie (YARP sigue con sus direcciones fijas). `up.sh` lo ejecuta después del de Vault.
+- Al contrario que Vault, **conserva el registro al reiniciarse**: el agente lo guarda en `/consul/data`.
+- `vault` pasa a depender de `consul` en `depends_on`.
+- Ajustes propios de Scattered: la imagen `consul` del original ya no existe en Docker Hub (se usa `hashicorp/consul:latest`), y `config.sh` registra por la API HTTP porque la CLI actual rechaza las direcciones con `http://` del original (ver [capítulo 6](flow5.md#particularidades)).
 
 ### Capítulo 7 · Logs en la nube (pendiente)
 
@@ -129,10 +134,11 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 | | |
 |---|---|
 | Nace | Capítulo 6 |
-| Proceso | `consul agent -dev -client 0.0.0.0`: servidor y agente en un nodo |
-| Puertos | `8500` API y web · `8400` · `8600` DNS (TCP/UDP) |
+| Imagen | `hashicorp/consul:latest` (el original usa `consul`, retirada de Docker Hub) |
+| Proceso | `consul agent -dev -client 0.0.0.0`: servidor y agente en un nodo; guarda su estado en el volumen `/consul/data` |
+| Puertos | `8500` API y web (lo usan los servicios) · `8600` DNS (TCP/UDP) · `8400` publicado pero sin uso (RPC de versiones antiguas) |
 | Acceso | http://localhost:8500 |
-| Para qué | Registro de servicios: cada microservicio se da de alta al arrancar y los demás resuelven su dirección por nombre. También lo usan para localizar RabbitMQ, Vault, etc. |
+| Para qué | Registro de servicios. En el capítulo 6, los servicios resuelven por nombre dónde están Vault (`SecretManager`) y RabbitMQ; los microservicios están registrados con `tools/consul/config.sh` pero todavía no los consulta nadie. En capítulos posteriores los gateways y servicios lo usan para llamarse entre sí y se registran solos |
 
 ### `graylog` · interfaz de logs
 
@@ -231,6 +237,7 @@ docker compose stop                                                  # parar sin
 docker top rabbitmq                                                  # procesos dentro de un contenedor
 docker logs -f rabbitmq                                              # logs del contenedor
 docker exec rabbitmq rabbitmqctl list_queues name messages consumers # colas y mensajes
+curl -s localhost:8500/v1/catalog/services                           # servicios registrados en Consul
 ```
 
 ## Cómo actualizar este documento
@@ -246,5 +253,6 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-19 | `features/flow5` | Capítulo 6: nace `consul` (`hashicorp/consul`), corriendo junto a `rabbitmq` y `vault`; se recreó sin el volumen heredado de `main`. 9 contenedores de `main` detenidos |
 | 2026-11-18 | `features/flow4` | Capítulo 5: nace `vault` (`hashicorp/vault`), corriendo junto a `rabbitmq`; 10 contenedores de `main` detenidos |
 | 2026-11-18 | `features/flow3` | Documento creado. Estado: `rabbitmq` corriendo (flow3); 11 contenedores de `main` detenidos. Capítulos 1–4 replicados |

@@ -1,6 +1,3 @@
-using Scattered.Shared.Communication.RabbitMQ;
-using Scattered.Shared.Secrets;
-
 WebApplication app = DefaultScatteredWebApplication.Create(webappBuilder =>
 {
     webappBuilder.Services.AddReverseProxy()

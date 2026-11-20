@@ -1,5 +1,4 @@
-﻿using Scattered.Shared.Communication.Publisher.Integration;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Scattered.Services.Orders.Controllers;
 [ApiController]
