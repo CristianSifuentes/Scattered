@@ -4,39 +4,40 @@
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow12`)** replica la rama [`13-Health-Checks`](https://github.com/ElectNewt/Distribt/tree/13-Health-Checks) del proyecto original (commit `c46a5bb`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow13`)** replica la rama [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos) del proyecto original (commit `14e02ef`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow12` (nace de `features/flow11`) |
-| Capítulo del curso | 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net) |
-| Rama original | [`13-Health-Checks`](https://github.com/ElectNewt/Distribt/tree/13-Health-Checks) (`c46a5bb`) |
-| Qué hay | Lo de los capítulos anteriores + **`/health` y `/health-ui` en todos los servicios**, con comprobaciones de RabbitMQ, MySQL, MongoDB y de Products desde Orders. RabbitMQ pasa a 3.8 con `rabbitmq.conf` |
-| Qué falta | Observabilidad (cap. 14: OpenTelemetry, Prometheus, Grafana, Zipkin), API key y rate limiting |
-| Infraestructura | RabbitMQ **3.8**, Vault, Consul, Graylog (+2), MySQL y MongoDB: `./tools/local-development/up.sh` |
-| Guía del capítulo | [docs/flow/flow12.md](docs/flow/flow12.md) |
-| Siguiente capítulo | 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin (`14-monitorizacion-sistemas-distribuidos`) |
+| Rama | `features/flow13` (nace de `features/flow12`) |
+| Capítulo del curso | 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin |
+| Rama original | [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos) (`14e02ef`) |
+| Qué hay | Lo de los capítulos anteriores + **trazas y métricas** de los 10 servicios con OpenTelemetry, un collector que las reparte a **Zipkin** y **Prometheus**, paneles en **Grafana** y métricas de RabbitMQ |
+| Qué falta | API key (cap. 15) y rate limiting con paso a .NET 7 (cap. 16) |
+| Infraestructura | **12 contenedores**: RabbitMQ 3.8.34, Vault, Consul, Graylog (+2), MySQL, MongoDB, collector, Prometheus, Grafana y Zipkin: `./tools/local-development/up.sh` |
+| Guía del capítulo | [docs/flow/flow13.md](docs/flow/flow13.md) |
+| Siguiente capítulo | 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes (`15-Api-key`) |
 
 ## Qué cambió en este capítulo
 
-Respecto a `features/flow11` ([capítulo 12](docs/flow/flow11.md)) cada servicio puede decir **si está en condiciones de trabajar**: `/health` comprueba sus dependencias y responde `200 Healthy` o `503 Unhealthy` con el detalle en JSON, y `/health-ui` lo muestra en una web.
+Respecto a `features/flow12` ([capítulo 13](docs/flow/flow12.md)) llega la **observabilidad**: además de logs (cap. 7) y salud (cap. 13), cada servicio envía **trazas** (por dónde pasa una petición y cuánto tarda cada tramo) y **métricas** (peticiones, duración, códigos de respuesta) con OpenTelemetry.
 
 | Cambio | Dónde | Para qué |
 |---|---|---|
-| `AddHealthChecks` + `HealthChecksUI` en el arranque común | `DefaultScatteredWebApplication`, `HealthCheckHelper` | `/health` (JSON) y `/health-ui` en los 10 servicios |
-| Comprobación automática de cada dependencia | `AddServiceBus…`, `AddMySql`, `AddScatteredMongoDbConnectionProvider` | RabbitMQ (por conexión: `IntegrationPublisher`, `DomainConsumer`…), MySQL y MongoDB sin código extra en los servicios |
-| `ProductsHealthCheck` (propia) | Orders.BusinessLogic | Orders comprueba `/health` de Products.Api.Read |
-| RabbitMQ `3.9` → `3.8` y `rabbitmq.config` → `rabbitmq.conf` | `docker-compose.yaml`, `tools/rabbitmq/` | El usuario se crea desde la configuración; se corrige el JSON de `definitions.json` |
+| `AddTracing` + `AddMetrics` en el arranque común | `Setup/Observability/OpenTelemetry.cs` | Instrumentación de ASP.NET Core y exportación OTLP al collector (dirección de Consul) |
+| `"AppName"` en los 10 `appsettings.json` | `src/**/appsettings.json` | Nombre de cada servicio en trazas y métricas |
+| Contenedores `open_telemetry_collector`, `prometheus`, `grafana`, `zipkin-traces` | `docker-compose.yaml`, `tools/telemetry/` | Recibir (OTLP :4317), guardar y mostrar trazas (Zipkin :9411) y métricas (Prometheus :9090, Grafana :3000) |
+| Plugin `rabbitmq_prometheus` + dashboard de Grafana | `tools/rabbitmq/enabled_plugins`, `tools/telemetry/rabbitmq-overview_rev11.json` | Métricas del broker (colas, conexiones, mensajes) |
 
 ```text
-GET https://localhost:50320/health  (Products.Api.Write, con MySQL parado)
-503 {"status":"Unhealthy","entries":{"mysql":{"status":"Unhealthy","description":"Unable to connect to any of the specified MySQL hosts."},
-                                     "DomainPublisher":{"status":"Healthy"}}}
+POST /order-ms/order/create  → una traza en Zipkin (276 ms)
+  api.public ──▶ orders.api ──▶ products.api.read          (traceparent viaja en las cabeceras HTTP)
+Prometheus: sum by (exported_job, http_route, http_response_status_code) (http_server_request_duration_seconds_count)
+  Orders.API  Order/{orderId}  200 → 5 · 404 → 1   ·   Products.API.Read  product/{productId}  500 → 4
 ```
 
-Lo que conviene saber al probarlo: al cambiar la imagen, `docker compose up -d` **recrea RabbitMQ vacío** (las colas se vuelven a crear desde `definitions.json`); el `/health` de Subscriptions da 500 porque le falta `VAULT-TOKEN`; y la comprobación de Products en Orders marca `Unhealthy`, no `Degraded`, cuando Products está caído. Cambio propio: como `rabbitmq.conf` ya crea el usuario, se retira el que Scattered añadía a `definitions.json` desde el capítulo 3–4. Detalle en **[docs/flow/flow12.md](docs/flow/flow12.md)**.
+Lo que conviene saber al probarlo: las trazas cruzan el gateway y los servicios HTTP, pero **se cortan en RabbitMQ** (los consumers no aparecen); la UI de health checks llena Zipkin y Prometheus de peticiones a `/health`; y el dashboard de Grafana hay que importarlo a mano. Cambios propios: `prom/prometheus` (la imagen de Bitnami ya no se publica), exportador `debug` y `endpoint 0.0.0.0:4317` en el collector actual, y `OpenTelemetry.Instrumentation.AspNetCore` 1.8.1 por una vulnerabilidad. Detalle en **[docs/flow/flow13.md](docs/flow/flow13.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -50,7 +51,7 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow12`):
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow13`):
 
 ![ScatteredDiagram](assets/diagram.png)
 
@@ -66,7 +67,7 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 ## Progreso del curso
 
 <!-- progress:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
-Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **13 de 17 capítulos** replicados.
+Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **14 de 17 capítulos** replicados.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
 - [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
@@ -79,8 +80,8 @@ Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en
 - [x] 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios · [guía](docs/flow/flow9.md)
 - [x] 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming) · [guía](docs/flow/flow10.md)
 - [x] 12 · [Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas · [guía](docs/flow/flow11.md)
-- [x] 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net) · [guía](docs/flow/flow12.md) **← esta rama**
-- [ ] 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin
+- [x] 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net) · [guía](docs/flow/flow12.md)
+- [x] 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin · [guía](docs/flow/flow13.md) **← esta rama**
 - [ ] 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes
 - [ ] 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting)
 - [ ] 17 · [.NET Aspire](https://www.netmentor.es/entrada/introduccion-net-aspire) (rama aparte en el original)
@@ -130,7 +131,8 @@ Scattered/
 │           └── Scattered.Shared.Communication.RabbitMQ   Implementación con RabbitMQ.Client
 │   └── Tests/Services/                Subscriptions…ApiTests (WebApplicationFactory) · Orders…BusinessLogicTests (Moq)
 ├── tools/
-│   ├── rabbitmq/             rabbitmq.conf (usuario, carga de definiciones) + definitions.json (topología)
+│   ├── rabbitmq/             rabbitmq.conf + definitions.json (topología) + enabled_plugins (rabbitmq_prometheus)
+│   ├── telemetry/            Collector de OpenTelemetry, Prometheus, datasource de Grafana y dashboard de RabbitMQ
 │   ├── vault/config.sh       Secretos KV (rabbitmq, mysql, mongodb), motor rabbitmq y rol scattered-role
 │   ├── consul/config.sh      Registro de RabbitMQ, SecretManager, MySql, MongoDb, Graylog y los microservicios
 │   ├── mysql/init.sql        Tabla Products + 3 productos (escritura)
@@ -141,7 +143,7 @@ Scattered/
 │   └── communication/        Documentación de Shared.Communication
 ├── assets/                   Imágenes de este README
 ├── GlobalSettings.msbuild    Configuración común (net6.0, Nullable, TreatWarningsAsErrors, metadatos) de las librerías de src/Shared
-├── docker-compose.yaml       RabbitMQ 3.8 (:5672, UI :15672) + Vault (:8200) + Consul (:8500) + Graylog (:9000) + MySQL (:3307) + MongoDB (:27017)
+├── docker-compose.yaml       RabbitMQ 3.8.34 (:5672, UI :15672) + Vault (:8200) + Consul (:8500) + Graylog (:9000) + MySQL (:3307) + MongoDB (:27017) + collector (:4317) + Prometheus (:9090) + Grafana (:3000) + Zipkin (:9411)
 └── Scattered.sln             Solución (.NET 6)
 ```
 
@@ -179,7 +181,7 @@ curl -k -X POST https://localhost:50320/product -H 'Content-Type: application/js
 curl -k https://localhost:7283/order-ms/order/00000000-0000-0000-0000-000000000001                # 404 + ResultDto
 ```
 
-Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla); los health checks (`/health`, `/health-ui` en cada servicio), en [docs/flow/flow12.md](docs/flow/flow12.md#cómo-ejecutarla).
+Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla); los health checks, en [docs/flow/flow12.md](docs/flow/flow12.md#cómo-ejecutarla); trazas (Zipkin :9411), métricas (Prometheus :9090) y paneles (Grafana :3000, `admin` / `admin`), en [docs/flow/flow13.md](docs/flow/flow13.md#cómo-ejecutarla).
 
 ## Cómo evoluciona este README
 

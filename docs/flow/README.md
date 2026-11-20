@@ -25,8 +25,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 11 | [Respuestas de API unificadas](flow10.md) | `features/flow10` | [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api) | Respuestas unificadas (ResultDto) con ROP; Orders guarda los nombres de producto que le llegan por integración; Graylog desde Consul |
 | 12 | [Patrón SAGA](flow11.md) | `features/flow11` | [`12-Saga`](https://github.com/ElectNewt/Distribt/tree/12-Saga) | SAGA solo en teoría (sin código en el original); GlobalSettings.msbuild común para Shared y GetByIdOrDefaultAsync en el event sourcing |
 | 13 | [Health checks](flow12.md) | `features/flow12` | [`13-Health-Checks`](https://github.com/ElectNewt/Distribt/tree/13-Health-Checks) | /health y /health-ui en todos los servicios (RabbitMQ, MySQL, MongoDB y Products desde Orders); RabbitMQ 3.8 con rabbitmq.conf |
+| 14 | [Observabilidad](flow13.md) | `features/flow13` | [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos) | Trazas y métricas con OpenTelemetry → collector → Zipkin y Prometheus, paneles en Grafana; métricas de RabbitMQ |
 
-Siguiente: capítulo 14 · Observabilidad (rama `features/flow13`, original [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos)).
+Siguiente: capítulo 15 · API Key (rama `features/flow14`, original [`15-Api-key`](https://github.com/ElectNewt/Distribt/tree/15-Api-key)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -76,9 +77,9 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/13-Health-Checks..origin/14-monitorizacion-sistemas-distribuidos
-git diff --stat  origin/13-Health-Checks origin/14-monitorizacion-sistemas-distribuidos
-git diff         origin/13-Health-Checks origin/14-monitorizacion-sistemas-distribuidos
+git log --oneline origin/14-monitorizacion-sistemas-distribuidos..origin/15-Api-key
+git diff --stat  origin/14-monitorizacion-sistemas-distribuidos origin/15-Api-key
+git diff         origin/14-monitorizacion-sistemas-distribuidos origin/15-Api-key
 ```
 
 ### 2. Aplicar ese cambio en Scattered
@@ -87,16 +88,16 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow13 features/flow12
+git switch -c features/flow14 features/flow13
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/13-Health-Checks origin/14-monitorizacion-sistemas-distribuidos -- . ':(exclude)README.md' ':(exclude)assets' \
+git diff origin/14-monitorizacion-sistemas-distribuidos origin/15-Api-key -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/14.patch
+  > /tmp/15.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/14.patch   # comprobar que aplica limpio
-git apply /tmp/14.patch
+git apply --check /tmp/15.patch   # comprobar que aplica limpio
+git apply /tmp/15.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -131,7 +132,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow12 main
+git diff -M --stat features/flow13 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.
