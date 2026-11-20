@@ -3,9 +3,9 @@
 El gateway privado (`:7022`, *"Private api for Tenants"*) está pensado para clientes concretos, no para cualquiera. Una **API key** es la forma más simple de identificarlos: un valor secreto que el cliente envía en cada petición, en una cabecera, y que el servidor compara con el que tiene configurado. En este capítulo un middleware exige la cabecera `apiKey` en todas las peticiones al gateway privado, salvo en `/health`. La rama original añade además documentación de `Shared.Discovery` y `Shared.Secrets`, y un intento de pasar a .NET 7 que se revierte el mismo día.
 
 <!-- nav:start -->
-[← Capítulo 14](flow13.md) · [Índice del flujo](README.md) · Siguiente: capítulo 16 (pendiente)
+[← Capítulo 14](flow13.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 16 →](flow15.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · [14](flow13.md) · **15** · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · [14](flow13.md) · **15** · [16](flow15.md) · 17
 <!-- nav:end -->
 
 ## Contenido

@@ -27,8 +27,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 13 | [Health checks](flow12.md) | `features/flow12` | [`13-Health-Checks`](https://github.com/ElectNewt/Distribt/tree/13-Health-Checks) | /health y /health-ui en todos los servicios (RabbitMQ, MySQL, MongoDB y Products desde Orders); RabbitMQ 3.8 con rabbitmq.conf |
 | 14 | [Observabilidad](flow13.md) | `features/flow13` | [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos) | Trazas y métricas con OpenTelemetry → collector → Zipkin y Prometheus, paneles en Grafana; métricas de RabbitMQ |
 | 15 | [API Key](flow14.md) | `features/flow14` | [`15-Api-key`](https://github.com/ElectNewt/Distribt/tree/15-Api-key) | El gateway privado exige la cabecera apiKey (middleware, salvo /health); documentación de Shared.Discovery y Shared.Secrets |
+| 16 | [Rate limiting](flow15.md) | `features/flow15` | [`16-rate-limiting`](https://github.com/ElectNewt/Distribt/tree/16-rate-limiting) | Paso a .NET 7 y rate limiting: 2 llamadas por hora y por API key en un endpoint del gateway privado (429) |
 
-Siguiente: capítulo 16 · Rate limiting (rama `features/flow15`, original [`16-rate-limiting`](https://github.com/ElectNewt/Distribt/tree/16-rate-limiting)).
+Siguiente: capítulo 17 · .NET Aspire (rama `features/flow16`, original [`17-Aspire-version2023`](https://github.com/ElectNewt/Distribt/tree/17-Aspire-version2023)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -78,9 +79,9 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/15-Api-key..origin/16-rate-limiting
-git diff --stat  origin/15-Api-key origin/16-rate-limiting
-git diff         origin/15-Api-key origin/16-rate-limiting
+git log --oneline origin/16-rate-limiting..origin/17-Aspire-version2023
+git diff --stat  origin/16-rate-limiting origin/17-Aspire-version2023
+git diff         origin/16-rate-limiting origin/17-Aspire-version2023
 ```
 
 ### 2. Aplicar ese cambio en Scattered
@@ -89,16 +90,16 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow15 features/flow14
+git switch -c features/flow16 features/flow15
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/15-Api-key origin/16-rate-limiting -- . ':(exclude)README.md' ':(exclude)assets' \
+git diff origin/16-rate-limiting origin/17-Aspire-version2023 -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/16.patch
+  > /tmp/17.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/16.patch   # comprobar que aplica limpio
-git apply /tmp/16.patch
+git apply --check /tmp/17.patch   # comprobar que aplica limpio
+git apply /tmp/17.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -133,7 +134,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow14 main
+git diff -M --stat features/flow15 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.

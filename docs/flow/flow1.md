@@ -5,7 +5,7 @@ Punto de partida para replicar el curso de Distribt capítulo a capítulo dentro
 <!-- nav:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
 [Índice del flujo](README.md) · [Siguiente: capítulo 2 →](flow2.md)
 
-Progreso: **1** · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · [14](flow13.md) · [15](flow14.md) · 16 · 17
+Progreso: **1** · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · [14](flow13.md) · [15](flow14.md) · [16](flow15.md) · 17
 <!-- nav:end -->
 
 ## Contenido
