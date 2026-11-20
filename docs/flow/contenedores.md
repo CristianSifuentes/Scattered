@@ -10,11 +10,11 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow12` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow13` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
-| `rabbitmq` | `rabbitmq:3.8-management-alpine` (3.8.34) | **Corriendo** | `features/flow12` (20-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd`. Usuarios: `ScatteredAdmin` y los `token-…` temporales que crea Vault para el gateway |
+| `rabbitmq` | `rabbitmq:3.8.34-management-alpine` | **Corriendo** | `features/flow13` (20-nov) | `rabbitmq-server` → `beam.smp` (la máquina virtual de Erlang con el broker y el plugin de gestión) + `epmd`. Usuarios: `ScatteredAdmin` y los `token-…` temporales que crea Vault para el gateway |
 | `vault` | `hashicorp/vault:latest` (2.2.1) | **Corriendo** | `features/flow4` (18-nov) | `dumb-init` → `docker-entrypoint.sh` → `vault server -dev -dev-root-token-id=vault-scattered-token`. Motores `secret/` (KV con `secret/rabbitmq`) y `rabbitmq/` (rol `scattered-role`), cargados con `tools/vault/config.sh` |
 | `consul` | `hashicorp/consul:latest` (2.1.0) | **Corriendo** | `features/flow5` (19-nov) | `dumb-init` → `docker-entrypoint.sh` → `consul agent -data-dir=/consul/data -config-dir=/consul/config -dev -client 0.0.0.0`. Servicios registrados con `tools/consul/config.sh`: `RabbitMQ`, `SecretManager`, `EmailsApi`, `OrdersApi`, `ProductsApi`, `SubscriptionsApi` |
 | `graylog` | `graylog/graylog:4.2.5` (amd64, emulado) | **Corriendo** (healthy) | `features/flow6` (19-nov) | `tini` → `wait-for-it elasticsearch:9200` → `docker-entrypoint.sh` → servidor Graylog (Java). Un input *GELF UDP* en `12201`, creado a mano |
@@ -22,21 +22,21 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow12` en la copi
 | `elasticserach_graylog` | `elasticsearch-oss:7.10.2` | **Corriendo** | `main` (11-nov), reutilizado | Elasticsearch: índice `graylog_0` con los logs |
 | `MySql` | `mysql:8.0` (8.0.46) | **Corriendo** | `main` (11-nov), reutilizado | `mysqld`: base `scattered`, tabla `Products` (modelo de escritura de Products) |
 | `MongoDb` | `mongo:latest` (9.0.4) | **Corriendo** | `main` (11-nov), reutilizado | `mongod`: base `scattered`, colecciones `Products` (lectura de Products), `EventsOrders` (event store de Orders) y `ProductName` (copia de nombres en Orders) |
-| `open_telemetry_collector` | `otel/opentelemetry-collector:latest` | Detenido | `main` (11-nov) | — |
-| `prometheus` | `prom/prometheus` | Detenido | `main` (11-nov) | — |
-| `grafana` | `grafana/grafana` | Detenido | `main` (11-nov) | — |
-| `zipkin-traces` | `openzipkin/zipkin:latest` | Detenido | `main` (11-nov) | — |
+| `open_telemetry_collector` | `otel/opentelemetry-collector:latest` (0.165.0) | **Corriendo** | `main` (11-nov), reutilizado | `otelcol`: recibe OTLP en `:4317`, trazas → Zipkin, métricas → `:8889` |
+| `prometheus` | `prom/prometheus` (3.16.0) | **Corriendo** | `main` (11-nov), reutilizado | Lee el collector (`:8889`) y RabbitMQ (`:15692`) cada 10 s |
+| `grafana` | `grafana/grafana` (13.3.1) | **Corriendo** | `main` (11-nov), reutilizado | Prometheus como origen de datos; dashboard RabbitMQ-Overview importado |
+| `zipkin-traces` | `openzipkin/zipkin:latest` (3.6.1) | **Corriendo** | `main` (11-nov), reutilizado | Trazas de los 10 servicios, en memoria |
 
-- Los 4 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
+- Ya no queda ningún contenedor detenido: los 12 de `main` están en uso. Los que venían de `main` se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow12` necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `features/flow13` necesita **los 12**: `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
 - `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 ✔ | 13 ✔ | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 ✔ | 13 ✔ | 14–16 (14 ✔) | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -125,10 +125,12 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 - **`rabbitmq` baja a la imagen `3.8-management-alpine`** (3.8.34) y cambia `rabbitmq.config` (formato Erlang) por `rabbitmq.conf` (formato ini), que define el usuario por defecto y carga `definitions.json` con `management.load_definitions`. Con este formato RabbitMQ crea el usuario antes de aplicar las definiciones, así que Scattered retira el usuario que declaraba en `definitions.json` desde el capítulo 3–4.
 - Al cambiar la imagen, `docker compose up -d` **recrea** el contenedor: arranca vacío (sin mensajes, sin los usuarios `token-…` de Vault ni enlaces antiguos) y vuelve a cargar `definitions.json`.
 
-### Capítulo 14 · Monitorización (pendiente)
+### Capítulo 14 · Monitorización · `features/flow13` ✔
 
-- **Nacen `open_telemetry_collector`, `prometheus`, `grafana` y `zipkin-traces`**: métricas y trazas distribuidas. RabbitMQ fija la versión 3.8.34.
-- En el original Prometheus usaba `bitnami/prometheus`; `main` de Scattered usa `prom/prometheus`.
+- **Nacen `open_telemetry_collector`, `prometheus`, `grafana` y `zipkin-traces`**: los servicios envían trazas y métricas por OTLP (`:4317`, dirección en Consul) al collector, que manda las trazas a Zipkin y publica las métricas en `:8889` para Prometheus. Grafana usa Prometheus como origen de datos.
+- `rabbitmq` fija la imagen `3.8.34` y monta `enabled_plugins` (`rabbitmq_prometheus`, métricas en `:15692` dentro de la red de compose); se recrea.
+- Ajustes propios (los mismos que `main`): `prom/prometheus` en vez de `bitnami/prometheus` (ya no se publica), y en el collector el exportador `debug` en lugar de `logging` (eliminado) y `endpoint: 0.0.0.0:4317` en el receptor OTLP.
+- Los 4 contenedores se reutilizaron de `main` (misma configuración). Prometheus conserva su histórico.
 
 ### Capítulos 15–16 y `main`
 
@@ -226,9 +228,10 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 | | |
 |---|---|
 | Nace | Capítulo 14 |
+| Imagen | `otel/opentelemetry-collector:latest` (0.165.0 en esta ejecución) |
 | Proceso | `/otelcol --config=/etc/otel-collector-config.yaml` |
 | Puertos | `4317` OTLP gRPC (entrada) · `8889` métricas para Prometheus · `8888` métricas propias |
-| Para qué | Punto único al que los servicios envían telemetría con OpenTelemetry. Reparte: trazas → Zipkin, métricas → endpoint de Prometheus, logs → archivo `tools/telemetry/logs/logs.json` |
+| Para qué | Punto único al que los servicios envían telemetría con OpenTelemetry. Reparte: trazas → Zipkin, métricas → endpoint de Prometheus, logs → archivo `tools/telemetry/logs/logs.json`. Con la versión actual hace falta el exportador `debug` (no `logging`) y `endpoint: 0.0.0.0:4317`; sus métricas propias (`:8888`) no son accesibles desde Prometheus |
 
 ### `prometheus` · métricas
 
@@ -289,6 +292,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-20 | `features/flow13` | Capítulo 14: nacen collector, Prometheus, Grafana y Zipkin (reutilizados de `main`); `rabbitmq` recreado con 3.8.34 y `enabled_plugins`. **Los 12 contenedores corriendo** |
 | 2026-11-20 | `features/flow12` | Capítulo 13: `rabbitmq` recreado con la imagen 3.8 y `rabbitmq.conf`; health checks en los servicios |
 | 2026-11-20 | `features/flow11` | Capítulo 12: sin cambios de contenedores |
 | 2026-11-20 | `features/flow10` | Capítulo 11: sin contenedores nuevos; Graylog registrado en Consul, `ProductName` en MongoDB, `rabbitmq` reiniciado y enlace antiguo de `order.exchange` eliminado |

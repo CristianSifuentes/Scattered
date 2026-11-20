@@ -15,6 +15,7 @@ register '{"Name":"SecretManager","Address":"http://localhost","Port":8200}'
 register '{"Name":"MySql","Address":"localhost","Port":3307}'
 register '{"Name":"MongoDb","Address":"localhost","Port":27017}'
 register '{"Name":"Graylog","Address":"localhost","Port":12201}'
+register '{"Name":"OpenTelemetryCollector","Address":"localhost","Port":4317}'
 
 # Services
 register '{"Name":"EmailsApi","Address":"http://localhost","Port":50120}'

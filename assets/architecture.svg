@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1090" width="1400" height="1090" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-  <title>Scattered - Arquitectura (features/flow12 · 13-Health-Checks)</title>
+  <title>Scattered - Arquitectura (features/flow13 · 14-monitorizacion-sistemas-distribuidos)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
@@ -74,7 +74,7 @@
 
   <rect width="1400" height="1090" rx="18" fill="#0f172a"/>
   <text x="40" y="50" fill="#f8fafc" font-size="24" font-weight="700">Scattered</text>
-  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow12 (13-Health-Checks): /health en cada servicio</text>
+  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow13 (14-monitorizacion): trazas y métricas</text>
 
   <!-- Leyenda -->
   <rect x="40" y="72" width="34" height="20" rx="5" class="service"/>
@@ -96,7 +96,7 @@
   <path class="discovery-live" d="M935 52 H975"/>
   <text class="legend" x="985" y="57">Consulta Consul</text>
   <path class="log-live" d="M935 22 H975"/>
-  <text class="legend" x="985" y="27">Envía logs</text>
+  <text class="legend" x="985" y="27">Logs, trazas y métricas</text>
 
   <!-- Conexiones planificadas (ninguna existe aún) -->
   <path class="async-live" d="M340 288 H400 V175 H560"/>
@@ -190,11 +190,12 @@
   <text class="code" x="480" y="206" style="fill:#fcd34d">subscription-queue</text>
 
   <!-- Graylog: logs centralizados -->
-  <rect class="logs" x="880" y="605" width="150" height="70" rx="12"/>
-  <text class="service-text" x="955" y="635" style="fill:#fce7f3">Graylog</text>
-  <text class="code" x="955" y="657" style="fill:#f9a8d4">GELF UDP :12201</text>
-  <rect class="tag" x="895" y="593" width="120" height="22" rx="11"/>
-  <text class="tag-text" x="955" y="608">Docker · :9000</text>
+  <rect class="logs" x="880" y="605" width="200" height="78" rx="12"/>
+  <text class="service-text" x="980" y="632" style="fill:#fce7f3">Observabilidad</text>
+  <text class="code" x="980" y="652" style="fill:#f9a8d4">Graylog · Zipkin</text>
+  <text class="code" x="980" y="670" style="fill:#f9a8d4">Prometheus · Grafana</text>
+  <rect class="tag" x="905" y="593" width="150" height="22" rx="11"/>
+  <text class="tag-text" x="980" y="608">OTel collector · :4317</text>
 
   <!-- Consul: registro de servicios -->
   <rect class="registry" x="410" y="615" width="270" height="105" rx="12"/>
@@ -236,13 +237,13 @@
   <rect class="panel" x="40" y="860" width="1320" height="200" rx="16"/>
   <text x="62" y="892" fill="#f8fafc" font-size="18" font-weight="600">Común</text>
   <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 10 proyectos ejecutables</text>
-  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 14 en adelante: OpenTelemetry, Prometheus, Grafana, Zipkin, API key…</text>
+  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 15 en adelante: API key, rate limiting (.NET 7)</text>
 
   <rect class="card" x="60" y="910" width="330" height="130" rx="12"/>
   <text class="card-text" x="225" y="942">Scattered.Shared.Setup</text>
   <rect class="tag" x="115" y="955" width="220" height="24" rx="12"/>
   <text class="tag-text" x="225" y="971">DefaultScatteredWebApplication</text>
-  <text class="card-note" x="225" y="1003">API/Create() · ROP · /health + /health-ui</text>
+  <text class="card-note" x="225" y="1003">Create() · ROP · /health · OpenTelemetry</text>
   <text class="card-note" x="225" y="1023">Services/ · Databases/ · + Shared.EventSourcing</text>
 
   <rect class="card" x="405" y="910" width="250" height="130" rx="12" style="stroke:#34d399"/>
