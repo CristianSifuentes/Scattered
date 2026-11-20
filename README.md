@@ -4,40 +4,38 @@
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow13`)** replica la rama [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos) del proyecto original (commit `14e02ef`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow14`)** replica la rama [`15-Api-key`](https://github.com/ElectNewt/Distribt/tree/15-Api-key) del proyecto original (commit `21bbc57`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow13` (nace de `features/flow12`) |
-| Capítulo del curso | 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin |
-| Rama original | [`14-monitorizacion-sistemas-distribuidos`](https://github.com/ElectNewt/Distribt/tree/14-monitorizacion-sistemas-distribuidos) (`14e02ef`) |
-| Qué hay | Lo de los capítulos anteriores + **trazas y métricas** de los 10 servicios con OpenTelemetry, un collector que las reparte a **Zipkin** y **Prometheus**, paneles en **Grafana** y métricas de RabbitMQ |
-| Qué falta | API key (cap. 15) y rate limiting con paso a .NET 7 (cap. 16) |
-| Infraestructura | **12 contenedores**: RabbitMQ 3.8.34, Vault, Consul, Graylog (+2), MySQL, MongoDB, collector, Prometheus, Grafana y Zipkin: `./tools/local-development/up.sh` |
-| Guía del capítulo | [docs/flow/flow13.md](docs/flow/flow13.md) |
-| Siguiente capítulo | 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes (`15-Api-key`) |
+| Rama | `features/flow14` (nace de `features/flow13`) |
+| Capítulo del curso | 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes |
+| Rama original | [`15-Api-key`](https://github.com/ElectNewt/Distribt/tree/15-Api-key) (`21bbc57`) |
+| Qué hay | Lo de los capítulos anteriores + **el gateway privado exige una API key** en la cabecera `apiKey` (salvo `/health`); documentación de `Shared.Discovery` y `Shared.Secrets` |
+| Qué falta | Rate limiting y paso a .NET 7 (cap. 16) |
+| Infraestructura | Los 12 contenedores del capítulo 14: `./tools/local-development/up.sh` |
+| Guía del capítulo | [docs/flow/flow14.md](docs/flow/flow14.md) |
+| Siguiente capítulo | 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting) (`16-rate-limiting`) |
 
 ## Qué cambió en este capítulo
 
-Respecto a `features/flow12` ([capítulo 13](docs/flow/flow12.md)) llega la **observabilidad**: además de logs (cap. 7) y salud (cap. 13), cada servicio envía **trazas** (por dónde pasa una petición y cuánto tarda cada tramo) y **métricas** (peticiones, duración, códigos de respuesta) con OpenTelemetry.
+Respecto a `features/flow13` ([capítulo 14](docs/flow/flow13.md)) el gateway privado (`:7022`, para clientes concretos) deja de estar abierto: un middleware compara la cabecera **`apiKey`** de cada petición con la clave configurada y, si falta o no coincide, corta la petición.
 
 | Cambio | Dónde | Para qué |
 |---|---|---|
-| `AddTracing` + `AddMetrics` en el arranque común | `Setup/Observability/OpenTelemetry.cs` | Instrumentación de ASP.NET Core y exportación OTLP al collector (dirección de Consul) |
-| `"AppName"` en los 10 `appsettings.json` | `src/**/appsettings.json` | Nombre de cada servicio en trazas y métricas |
-| Contenedores `open_telemetry_collector`, `prometheus`, `grafana`, `zipkin-traces` | `docker-compose.yaml`, `tools/telemetry/` | Recibir (OTLP :4317), guardar y mostrar trazas (Zipkin :9411) y métricas (Prometheus :9090, Grafana :3000) |
-| Plugin `rabbitmq_prometheus` + dashboard de Grafana | `tools/rabbitmq/enabled_plugins`, `tools/telemetry/rabbitmq-overview_rev11.json` | Métricas del broker (colas, conexiones, mensajes) |
+| `ApiKeyMiddleware` + `AddApiToken` / `UseApiTokenMiddleware` | `Shared.Setup/API/Key/` | Exigir la clave en todas las rutas salvo `/health` |
+| `"ApiKey": { "clientId", "value" }` + registro del middleware | API Private | Activar la clave solo en el gateway privado |
+| `docs/discovery/Readme.md`, `docs/secrets/Readme.md` | `docs/` | Cómo usar las librerías de service discovery y secretos |
 
 ```text
-POST /order-ms/order/create  → una traza en Zipkin (276 ms)
-  api.public ──▶ orders.api ──▶ products.api.read          (traceparent viaja en las cabeceras HTTP)
-Prometheus: sum by (exported_job, http_route, http_response_status_code) (http_server_request_duration_seconds_count)
-  Orders.API  Order/{orderId}  200 → 5 · 404 → 1   ·   Products.API.Read  product/{productId}  500 → 4
+curl -k https://localhost:7022/reports/order/<id>                          → 500 UnauthorizedAccessException: The API Key is missing
+curl -k -H "apiKey: b92b0bdf-…" https://localhost:7022/reports/order/<id>  → 200
+curl -k https://localhost:7022/health                                      → 200 (sin clave)
 ```
 
-Lo que conviene saber al probarlo: las trazas cruzan el gateway y los servicios HTTP, pero **se cortan en RabbitMQ** (los consumers no aparecen); la UI de health checks llena Zipkin y Prometheus de peticiones a `/health`; y el dashboard de Grafana hay que importarlo a mano. Cambios propios: `prom/prometheus` (la imagen de Bitnami ya no se publica), exportador `debug` y `endpoint 0.0.0.0:4317` en el collector actual, y `OpenTelemetry.Instrumentation.AspNetCore` 1.8.1 por una vulnerabilidad. Detalle en **[docs/flow/flow13.md](docs/flow/flow13.md)**.
+Lo que conviene saber al probarlo: sin clave (o con una incorrecta) la respuesta es un **500**, no un 401; `/health-ui` y Swagger también quedan detrás de la clave; y los servicios siguen accesibles directamente sin ella. El diff del original aplica limpio. Detalle en **[docs/flow/flow14.md](docs/flow/flow14.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -51,7 +49,7 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow13`):
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow14`):
 
 ![ScatteredDiagram](assets/diagram.png)
 
@@ -67,7 +65,7 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 ## Progreso del curso
 
 <!-- progress:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
-Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **14 de 17 capítulos** replicados.
+Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **15 de 17 capítulos** replicados.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
 - [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
@@ -82,7 +80,7 @@ Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en
 - [x] 12 · [Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas · [guía](docs/flow/flow11.md)
 - [x] 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net) · [guía](docs/flow/flow12.md)
 - [x] 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin · [guía](docs/flow/flow13.md)
-- [ ] 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes
+- [x] 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes · [guía](docs/flow/flow14.md)
 - [ ] 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting)
 - [ ] 17 · [.NET Aspire](https://www.netmentor.es/entrada/introduccion-net-aspire) (rama aparte en el original)
 <!-- progress:end -->
@@ -98,7 +96,7 @@ Scattered/
 ├── src/
 │   ├── Api/
 │   │   ├── Public/Scattered.API.Public       Gateway YARP :7283  /order-ms/* · /product-ms/* + POST /subscribe (publica)
-│   │   └── Private/Scattered.API.Private     Gateway YARP :7022  /reports/*
+│   │   └── Private/Scattered.API.Private     Gateway YARP :7022  /reports/* (exige cabecera apiKey)
 │   ├── Services/
 │   │   ├── Emails/Scattered.Services.Emails                :50120  POST /email
 │   │   ├── Orders/
@@ -140,7 +138,9 @@ Scattered/
 │   └── local-development/    up.sh: docker-compose up + los dos config.sh
 ├── docs/
 │   ├── flow/                 Guía del flujo paso a paso, un archivo por capítulo
-│   └── communication/        Documentación de Shared.Communication
+│   ├── communication/        Documentación de Shared.Communication
+│   ├── discovery/            Documentación de Shared.Discovery
+│   └── secrets/              Documentación de Shared.Secrets
 ├── assets/                   Imágenes de este README
 ├── GlobalSettings.msbuild    Configuración común (net6.0, Nullable, TreatWarningsAsErrors, metadatos) de las librerías de src/Shared
 ├── docker-compose.yaml       RabbitMQ 3.8.34 (:5672, UI :15672) + Vault (:8200) + Consul (:8500) + Graylog (:9000) + MySQL (:3307) + MongoDB (:27017) + collector (:4317) + Prometheus (:9090) + Grafana (:3000) + Zipkin (:9411)
@@ -166,6 +166,8 @@ DefaultScatteredWebApplication.Run(app);
 
 * Flujo paso a paso por capítulo - [docs/flow](docs/flow/README.md)
 * Shared.Communication - [docs/communication/Readme.md](docs/communication/Readme.md)
+* Shared.Discovery - [docs/discovery/Readme.md](docs/discovery/Readme.md)
+* Shared.Secrets - [docs/secrets/Readme.md](docs/secrets/Readme.md)
 
 ## ¿Cómo ejecutar la aplicación?
 
@@ -181,7 +183,7 @@ curl -k -X POST https://localhost:50320/product -H 'Content-Type: application/js
 curl -k https://localhost:7283/order-ms/order/00000000-0000-0000-0000-000000000001                # 404 + ResultDto
 ```
 
-Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla); los health checks, en [docs/flow/flow12.md](docs/flow/flow12.md#cómo-ejecutarla); trazas (Zipkin :9411), métricas (Prometheus :9090) y paneles (Grafana :3000, `admin` / `admin`), en [docs/flow/flow13.md](docs/flow/flow13.md#cómo-ejecutarla).
+Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla); los health checks, en [docs/flow/flow12.md](docs/flow/flow12.md#cómo-ejecutarla); trazas (Zipkin :9411), métricas (Prometheus :9090) y paneles (Grafana :3000, `admin` / `admin`), en [docs/flow/flow13.md](docs/flow/flow13.md#cómo-ejecutarla). El gateway privado necesita la cabecera `apiKey` (valor en su `appsettings.json`, ver [docs/flow/flow14.md](docs/flow/flow14.md#cómo-ejecutarla)).
 
 ## Cómo evoluciona este README
 
