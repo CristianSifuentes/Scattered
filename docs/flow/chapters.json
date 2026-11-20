@@ -22,7 +22,7 @@
    "summary": "Products se divide en API de escritura (MySQL), API de lectura (MongoDB) y un consumer que sincroniza; handlers con Scrutor y primer test de API"},
   {"flow": 8, "chapter": "9", "short": "Event Sourcing", "original": "09-Event-sourcing",
    "title": "[Event Sourcing](https://www.netmentor.es/entrada/event-sourcing-explicado-facil) con MongoDB",
-   "summary": "Event Sourcing con MongoDB"},
+   "summary": "Orders guarda sus pedidos como eventos en MongoDB (event store) y reconstruye el estado al leer; nueva librería Shared.EventSourcing"},
   {"flow": 9, "chapter": "10", "short": "Consistencia eventual", "original": "10-Consistencia-eventual",
    "title": "[Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios",
    "summary": "Consistencia eventual entre microservicios"},

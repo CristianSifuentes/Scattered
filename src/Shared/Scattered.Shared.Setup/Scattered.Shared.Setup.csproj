@@ -11,11 +11,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Scattered.Shared.Api\Scattered.Shared.Api.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Discovery\Scattered.Shared.Discovery.csproj" />
+    <ProjectReference Include="..\Scattered.Shared.EventSourcing\Scattered.Shared.EventSourcing.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Logging\Scattered.Shared.Logging.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Secrets\Scattered.Shared.Secrets.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Serialization\Scattered.Shared.Serialization.csproj" />
     <ProjectReference Include="..\Shared.Communication\Scattered.Shared.Communication.RabbitMQ\Scattered.Shared.Communication.RabbitMQ.csproj" />
-    <ProjectReference Include="..\Shared.Databases\Scattered.Shared.Databases.MongoDb\Scattered.Shared.Databases.MongoDb.csproj" />
     <ProjectReference Include="..\Shared.Databases\Scattered.Shared.Databases.MySql\Scattered.Shared.Databases.MySql.csproj" />
   </ItemGroup>
 

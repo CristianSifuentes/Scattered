@@ -3,9 +3,9 @@
 **CQRS** (*Command Query Responsibility Segregation*) separa las operaciones que **cambian** datos (comandos) de las que **los leen** (consultas), y les da a cada una su propio modelo, su propia API y, aquí, su propia base de datos. En este capítulo, Products se parte en tres procesos: una **API de escritura** que guarda en **MySQL**, una **API de lectura** que consulta **MongoDB** y un **consumer** que mantiene MongoDB al día a partir de los mensajes de dominio que publica la escritura. La rama trae además dos mejoras previas: los handlers de RabbitMQ se registran solos con inyección de dependencias (Scrutor) y aparecen los primeros tests de API.
 
 <!-- nav:start -->
-[← Capítulo 7](flow6.md) · [Índice del flujo](README.md) · Siguiente: capítulo 9 (pendiente)
+[← Capítulo 7](flow6.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 9 →](flow8.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · **8** · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · **8** · [9](flow8.md) · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido
