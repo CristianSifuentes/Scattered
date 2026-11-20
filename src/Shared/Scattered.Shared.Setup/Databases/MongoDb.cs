@@ -1,5 +1,7 @@
 using Scattered.Shared.Databases.MongoDb;
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 namespace Scattered.Shared.Setup.Databases;
@@ -10,11 +12,16 @@ public static class MongoDb
     {
         var conventionPack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
         ConventionRegistry.Register("IgnoreExtraElements", conventionPack, type => true);
-        
+        // MongoDB.Driver 2.19 only (de)serializes allow-listed types stored as object, which is how events are saved in the event store.
+        BsonSerializer.TryRegisterSerializer(new ObjectSerializer(type =>
+            ObjectSerializer.DefaultAllowedTypes(type) || type.FullName?.StartsWith("Scattered.") == true));
+
         return serviceCollection.AddScoped<IMongoDbConnectionProvider, MongoDbConnectionProvider>(); 
     }
 
 }
+
+
 
 //TODO: #20
 public class MongoDbConnectionProvider : IMongoDbConnectionProvider
