@@ -1,3 +1,3 @@
-WebApplication app = DefaultScatteredWebApplication.Create();
+WebApplication app = DefaultScatteredWebApplication.Create(args);
 
 DefaultScatteredWebApplication.Run(app);

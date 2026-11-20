@@ -1,5 +1,5 @@
 ﻿using Scattered.Services.Orders.Dto;
-using Scattered.Services.Products.Dto;
+using Scattered.Services.Products.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Scattered.Services.Orders.Controllers;
@@ -23,7 +23,7 @@ public class OrderController
 
         //Todo, change for a real one as this one is only to test the logger.
         return Task.FromResult(new OrderDto(orderId, new OrderAddress("stree1", "postalCode"), 
-            new PersonalDetails("name", "surname"), new List<ProductDto>()));
+            new PersonalDetails("name", "surname"), new List<FullProductResponse>()));
     }
 
     [HttpGet("getorderstatus/{orderId}")]

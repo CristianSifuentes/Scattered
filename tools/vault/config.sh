@@ -15,3 +15,11 @@ docker exec -it vault vault write rabbitmq/config/connection \
 
 docker exec -it vault vault write rabbitmq/roles/scattered-role \
     vhosts='{"/":{"write": ".*", "read": ".*"}}'
+
+
+    
+## User&Pass for mongoDb
+docker exec -it vault vault kv put secret/mongodb username=scatteredUser password=scatteredPassword
+
+##User&Pass for MySql
+docker exec -it vault vault kv put secret/mysql username=scatteredUser password=scatteredPassword

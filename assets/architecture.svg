@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1090" width="1400" height="1090" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-  <title>Scattered - Arquitectura (features/flow6 · 07-Logs-en-la-nube)</title>
+  <title>Scattered - Arquitectura (features/flow7 · 08-CQRS)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
@@ -26,6 +26,10 @@
     <g id="db-live">
       <path d="M0 10 v50 a100 10 0 0 0 200 0 v-50" fill="#2e1065" stroke="#c084fc" stroke-width="2"/>
       <ellipse cx="100" cy="10" rx="100" ry="10" fill="#3b0764" stroke="#c084fc" stroke-width="2"/>
+    </g>
+    <g id="db-data">
+      <path d="M0 10 v50 a100 10 0 0 0 200 0 v-50" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+      <ellipse cx="100" cy="10" rx="100" ry="10" fill="#075985" stroke="#38bdf8" stroke-width="2"/>
     </g>
     <g id="db">
       <path d="M0 10 v50 a100 10 0 0 0 200 0 v-50" fill="#131c31" stroke="#64748b" stroke-width="2" stroke-dasharray="6 5"/>
@@ -70,7 +74,7 @@
 
   <rect width="1400" height="1090" rx="18" fill="#0f172a"/>
   <text x="40" y="50" fill="#f8fafc" font-size="24" font-weight="700">Scattered</text>
-  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow6 (07-Logs-en-la-nube): logs en Graylog</text>
+  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow7 (08-CQRS): Products con CQRS</text>
 
   <!-- Leyenda -->
   <rect x="40" y="72" width="34" height="20" rx="5" class="service"/>
@@ -109,7 +113,7 @@
   <path class="plan" d="M860 530 H940 V310 H860"/>
   <path class="plan" d="M860 175 H1120"/>
   <path class="plan" d="M860 295 H1120"/>
-  <path class="plan" d="M860 405 H1120"/>
+  <path class="line" d="M860 405 H1118"/>
   <path class="plan" d="M860 570 H1040 V500 H1120"/>
   <path class="plan" d="M1040 570 V590 H1120"/>
   <path class="plan" d="M800 590 V685 H1120"/>
@@ -166,11 +170,11 @@
   <text class="tag-text" x="801" y="264">Web API · :50120</text>
 
   <rect class="service" x="560" y="370" width="300" height="90" rx="12"/>
-  <text class="service-text" x="710" y="400">Products Microservice</text>
-  <text class="code" x="710" y="424">GET /product/{id} → "TODO"</text>
-  <text class="code" x="710" y="444">POST /product → true</text>
-  <rect class="tag" x="742" y="358" width="118" height="24" rx="12"/>
-  <text class="tag-text" x="801" y="374">Web API · :50320</text>
+  <text class="service-text" x="710" y="400">Products Microservice · CQRS</text>
+  <text class="code" x="710" y="424">Write :50320 → MySQL → evento</text>
+  <text class="code" x="710" y="444">Consumer :50322→Mongo · Read :50321</text>
+  <rect class="tag" x="712" y="358" width="148" height="24" rx="12"/>
+  <text class="tag-text" x="786" y="374">Write · Read · Consumer</text>
 
   <rect class="service" x="560" y="490" width="300" height="100" rx="12"/>
   <text class="service-text" x="710" y="522">Orders Microservice</text>
@@ -210,8 +214,11 @@
   <text class="db-text" x="1220" y="307" style="fill:#f3e8ff">Vault (secrets)</text>
   <rect class="tag" x="1160" y="232" width="120" height="22" rx="11"/>
   <text class="tag-text" x="1220" y="247">Docker · :8200</text>
-  <use href="#db" x="1120" y="370"/>
-  <text class="db-text" x="1220" y="417">products Db</text>
+  <use href="#db-data" x="1120" y="370"/>
+  <text class="db-text" x="1220" y="403" style="fill:#e0f2fe">MySQL (escritura)</text>
+  <text class="db-text" x="1220" y="423" style="fill:#e0f2fe">MongoDB (lectura)</text>
+  <rect class="tag" x="1150" y="344" width="140" height="22" rx="11"/>
+  <text class="tag-text" x="1220" y="359">Docker · :3307 · :27017</text>
   <use href="#db" x="1120" y="465"/>
   <text class="db-text" x="1220" y="512">Orders Db write</text>
   <use href="#db" x="1120" y="555"/>
@@ -227,15 +234,15 @@
   <!-- Común: src/Shared -->
   <rect class="panel" x="40" y="860" width="1320" height="200" rx="16"/>
   <text x="62" y="892" fill="#f8fafc" font-size="18" font-weight="600">Común</text>
-  <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 8 proyectos ejecutables</text>
-  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 8 en adelante: MySQL, MongoDB, health checks, OpenTelemetry…</text>
+  <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 10 proyectos ejecutables</text>
+  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 9 en adelante: Event Sourcing, SAGA, health checks, OpenTelemetry…</text>
 
   <rect class="card" x="60" y="910" width="330" height="130" rx="12"/>
   <text class="card-text" x="225" y="942">Scattered.Shared.Setup</text>
   <rect class="tag" x="115" y="955" width="220" height="24" rx="12"/>
   <text class="tag-text" x="225" y="971">DefaultScatteredWebApplication</text>
   <text class="card-note" x="225" y="1003">API/Create(): + Discovery + SecretManager</text>
-  <text class="card-note" x="225" y="1023">Services/: ServiceBus · SecretManager…</text>
+  <text class="card-note" x="225" y="1023">Services/ · Databases/ (MySQL, MongoDB)</text>
 
   <rect class="card" x="405" y="910" width="250" height="130" rx="12" style="stroke:#34d399"/>
   <text class="card-text" x="530" y="942">Scattered.Shared.Discovery</text>
@@ -248,8 +255,8 @@
   <text class="card-text" x="785" y="942">Scattered.Shared.Secrets</text>
   <rect class="tag" x="725" y="955" width="120" height="24" rx="12"/>
   <text class="tag-text" x="785" y="971">Vault · VaultSharp</text>
-  <text class="card-note" x="785" y="1003">ISecretManager: secreto KV</text>
-  <text class="card-note" x="785" y="1023">+ usuario dinámico RabbitMQ</text>
+  <text class="card-note" x="785" y="1003">ISecretManager: secretos KV</text>
+  <text class="card-note" x="785" y="1023">rabbitmq · mysql · mongodb</text>
 
   <rect class="card" x="915" y="910" width="205" height="130" rx="12"/>
   <text class="card-text" x="1017" y="942">Service bus</text>

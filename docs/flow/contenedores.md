@@ -10,7 +10,7 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow6` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow7` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
@@ -20,23 +20,23 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow6` en la copia
 | `graylog` | `graylog/graylog:4.2.5` (amd64, emulado) | **Corriendo** (healthy) | `features/flow6` (19-nov) | `tini` → `wait-for-it elasticsearch:9200` → `docker-entrypoint.sh` → servidor Graylog (Java). Un input *GELF UDP* en `12201`, creado a mano |
 | `mongo_graylog` | `mongo:4.2` (4.2.24) | **Corriendo** | `main` (11-nov), reutilizado | `mongod`: configuración de Graylog (usuarios, inputs) |
 | `elasticserach_graylog` | `elasticsearch-oss:7.10.2` | **Corriendo** | `main` (11-nov), reutilizado | Elasticsearch: índice `graylog_0` con los logs |
-| `MySql` | `mysql:8.0` | Detenido | `main` (11-nov) | — |
-| `MongoDb` | `mongo:latest` | Detenido | `main` (11-nov) | — |
+| `MySql` | `mysql:8.0` (8.0.46) | **Corriendo** | `main` (11-nov), reutilizado | `mysqld`: base `scattered`, tabla `Products` (modelo de escritura de Products) |
+| `MongoDb` | `mongo:latest` (9.0.4) | **Corriendo** | `main` (11-nov), reutilizado | `mongod`: base `scattered`, colección `Products` (modelo de lectura de Products) |
 | `open_telemetry_collector` | `otel/opentelemetry-collector:latest` | Detenido | `main` (11-nov) | — |
 | `prometheus` | `prom/prometheus` | Detenido | `main` (11-nov) | — |
 | `grafana` | `grafana/grafana` | Detenido | `main` (11-nov) | — |
 | `zipkin-traces` | `openzipkin/zipkin:latest` | Detenido | `main` (11-nov) | — |
 
-- Los 6 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
+- Los 4 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow6` necesita `rabbitmq`, `vault`, `consul`, `graylog`, `mongo_graylog` y `elasticserach_graylog`. Los otros 6 no existen todavía en su `docker-compose.yaml`.
-- `mongo_graylog` y `elasticserach_graylog` tienen la misma configuración en `main` y en `features/flow6`, así que `docker compose up -d` los reutiliza con sus datos; `graylog` se recrea.
+- `features/flow7` necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 | 9–12 | 13 | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 | 13 | 14–16 | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -91,9 +91,13 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 - `rabbitmq` no cambia de imagen, pero `definitions.json` suma `order.exchange` y `order-queue`: hay que reiniciarlo para que las cree.
 - En Apple Silicon, `graylog/graylog:4.2.5` corre emulado (solo hay imagen amd64). En la ejecución del capítulo, Docker Desktop no publicó el `12201/udp` hasta reiniciar el contenedor (ver [capítulo 7](flow6.md#particularidades)).
 
-### Capítulo 8 · CQRS (pendiente)
+### Capítulo 8 · CQRS · `features/flow7` ✔
 
-- **Nacen `MySql` y `MongoDb`**: Products separa el modelo de escritura (MySQL) del de lectura (MongoDB), sincronizados con mensajes de dominio por RabbitMQ.
+- **Nacen `MySql` y `MongoDb`**: Products separa el modelo de escritura (MySQL, tabla `Products(Id, Name, Description)`) del de lectura (MongoDB, colección `Products` con `Details`, `Stock` y `Price`), sincronizados con mensajes de dominio por RabbitMQ.
+- Al crearse, cada uno ejecuta su script de `docker-entrypoint-initdb.d` (`tools/mysql/init.sql`, `tools/mongodb/mongo-init.js`) con los mismos 3 productos. MySQL publica el **`3307`** (el autor tenía ocupado el 3306).
+- Los servicios no tienen cadenas de conexión: piden `MySql` / `MongoDb` a Consul y `secret/mysql` / `secret/mongodb` a Vault (`tools/vault/config.sh` y `tools/consul/config.sh` suman esas entradas).
+- `rabbitmq` suma `products.exchange` y dos colas (`product-domain-queue`, `product-queue`); hay que reiniciarlo para que las cree. `graylog` pierde `restart: always`.
+- En la ejecución del capítulo se reutilizaron los contenedores de `main`, que ya tenían productos de pruebas anteriores (ver [capítulo 8](flow7.md#particularidades)).
 - En los capítulos 9 a 12 no nacen contenedores nuevos, pero `MongoDb` pasa a guardar también el *event store* de Orders (Event Sourcing, capítulo 9).
 
 ### Capítulo 13 · Health checks (pendiente)
@@ -179,6 +183,7 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 | | |
 |---|---|
 | Nace | Capítulo 8 |
+| Imagen | `mysql:8.0` |
 | Proceso | `mysqld` 8.0; al crearse ejecuta `tools/mysql/init.sql` |
 | Puertos | `3307` → 3306 (3307 porque el autor tenía ocupado el 3306) |
 | Acceso | base `scattered` · `scatteredUser` / `scatteredPassword` · root `scatteredRootPassword` |
@@ -189,7 +194,8 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 | | |
 |---|---|
 | Nace | Capítulo 8 |
-| Proceso | `mongod` (última versión); al crearse ejecuta `tools/mongodb/mongo-init.js` (usuario, colección `Products` con 3 productos y `EventsOrders`) |
+| Imagen | `mongo:latest` (hoy MongoDB 9; en 2022 era la 5) |
+| Proceso | `mongod`; al crearse ejecuta `tools/mongodb/mongo-init.js` (usuario y colección `Products` con 3 productos; desde el capítulo 9 también `EventsOrders`) |
 | Puertos | `27017` |
 | Acceso | base `scattered` · `scatteredUser` / `scatteredPassword` |
 | Para qué | Modelo de lectura de Products (CQRS) y, desde el capítulo 9, *event store* de Orders |
@@ -245,6 +251,8 @@ docker logs -f rabbitmq                                              # logs del 
 docker exec rabbitmq rabbitmqctl list_queues name messages consumers # colas y mensajes
 curl -s -u admin:admin -H 'Accept: application/json' localhost:9000/api/system/inputs  # inputs de Graylog
 curl -s localhost:8500/v1/catalog/services                           # servicios registrados en Consul
+docker exec MySql mysql -uscatteredUser -pscatteredPassword scattered -e 'select * from Products'   # escritura
+docker exec MongoDb mongosh -u scatteredUser -p scatteredPassword --eval 'db.getSiblingDB("scattered").Products.find()'  # lectura
 ```
 
 ## Cómo actualizar este documento
@@ -260,6 +268,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-19 | `features/flow7` | Capítulo 8: nacen `MySql` y `MongoDb` (reutilizados de `main`, con datos previos); `rabbitmq` reiniciado para cargar `products.exchange`. 8 corriendo, 4 de `main` detenidos |
 | 2026-11-19 | `features/flow6` | Capítulo 7: nacen `graylog` (recreado), `mongo_graylog` y `elasticserach_graylog` (reutilizados de `main`); `rabbitmq` reiniciado para cargar `order-queue`. 6 corriendo, 6 de `main` detenidos |
 | 2026-11-19 | `features/flow5` | Capítulo 6: nace `consul` (`hashicorp/consul`), corriendo junto a `rabbitmq` y `vault`; se recreó sin el volumen heredado de `main`. 9 contenedores de `main` detenidos |
 | 2026-11-18 | `features/flow4` | Capítulo 5: nace `vault` (`hashicorp/vault`), corriendo junto a `rabbitmq`; 10 contenedores de `main` detenidos |

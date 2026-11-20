@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Products\Scattered.Services.Products.Dto\Scattered.Services.Products.Dto.csproj" />
+      <ProjectReference Include="..\..\Products\Scattered.Services.Products.Dtos\Scattered.Services.Products.Dtos.csproj" />
     </ItemGroup>
 
 </Project>

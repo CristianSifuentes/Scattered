@@ -1,4 +1,4 @@
-WebApplication app = DefaultScatteredWebApplication.Create(webappBuilder =>
+WebApplication app = DefaultScatteredWebApplication.Create(args, webappBuilder =>
 {
     webappBuilder.Services.AddReverseProxy()
         .LoadFromConfig(webappBuilder.Configuration.GetSection("ReverseProxy"));

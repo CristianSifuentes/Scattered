@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "Scattered.Services.Products": {
+    "Scattered.Services.Products.Api.Write": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

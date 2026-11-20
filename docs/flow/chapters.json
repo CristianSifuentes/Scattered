@@ -19,7 +19,7 @@
    "summary": "Serilog y Graylog para centralizar logs (solo Orders los envía); Orders se arregla y estrena mensajes de dominio con su consumer"},
   {"flow": 7, "chapter": "8", "short": "CQRS", "original": "08-CQRS",
    "title": "[CQRS](https://www.netmentor.es/entrada/patron-cqrs-explicado-10-minutos) para separar lecturas de escrituras",
-   "summary": "CQRS en Products"},
+   "summary": "Products se divide en API de escritura (MySQL), API de lectura (MongoDB) y un consumer que sincroniza; handlers con Scrutor y primer test de API"},
   {"flow": 8, "chapter": "9", "short": "Event Sourcing", "original": "09-Event-sourcing",
    "title": "[Event Sourcing](https://www.netmentor.es/entrada/event-sourcing-explicado-facil) con MongoDB",
    "summary": "Event Sourcing con MongoDB"},
