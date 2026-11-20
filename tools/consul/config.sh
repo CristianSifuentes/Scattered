@@ -18,8 +18,8 @@ register '{"Name":"Graylog","Address":"localhost","Port":12201}'
 register '{"Name":"OpenTelemetryCollector","Address":"localhost","Port":4317}'
 
 # Services
-register '{"Name":"EmailsApi","Address":"http://localhost","Port":50120}'
-register '{"Name":"ProductsApiWrite","Address":"https://localhost","Port":50320}'
-register '{"Name":"ProductsApiRead","Address":"https://localhost","Port":50321}'
-register '{"Name":"OrdersApi","Address":"http://localhost","Port":50220}'
-register '{"Name":"SubscriptionsApi","Address":"http://localhost","Port":50420}'
+register '{"Name":"EmailsApi","Address":"http://localhost","Port":60120}'
+register '{"Name":"ProductsApiWrite","Address":"https://localhost","Port":60320}'
+register '{"Name":"ProductsApiRead","Address":"https://localhost","Port":60321}'
+register '{"Name":"OrdersApi","Address":"http://localhost","Port":60220}'
+register '{"Name":"SubscriptionsApi","Address":"http://localhost","Port":60420}'

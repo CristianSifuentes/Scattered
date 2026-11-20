@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- The original used the Aspire 8 preview workload, which current SDKs no longer support (NETSDK1228); Aspire now ships as an MSBuild SDK on NuGet -->
+    <Sdk Name="Aspire.AppHost.Sdk" Version="13.6.5" />
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsAspireHost>true</IsAspireHost>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.6.5" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\src\Services\Products\Scattered.Services.Products.Api.Read\Scattered.Services.Products.Api.Read.csproj" />
+      <ProjectReference Include="..\..\..\..\src\Services\Products\Scattered.Services.Products.Api.Write\Scattered.Services.Products.Api.Write.csproj" />
+      <ProjectReference Include="..\..\..\..\src\Services\Products\Scattered.Services.Products.Consumer\Scattered.Services.Products.Consumer.csproj" />
+    </ItemGroup>
+
+</Project>

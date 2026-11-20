@@ -10,7 +10,7 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow15` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow16` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow15` en la copi
 
 - Ya no queda ningún contenedor detenido: los 12 de `main` están en uso. Los que venían de `main` se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow15` necesita **los 12**: `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `features/flow16` necesita **los 12**: `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
 - `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
@@ -139,6 +139,12 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 ### Capítulo 16 · Rate limiting · `features/flow15` ✔
 
 - No cambia nada en los contenedores: el límite se aplica en memoria del gateway privado.
+
+### Capítulo 17 · .NET Aspire · `features/flow16` ✔
+
+- No nace ningún contenedor: el AppHost de Aspire solo arranca los 3 servicios de Products (y su dashboard, como proceso local en `:15175`), no la infraestructura.
+- El original adopta en este capítulo las imágenes `hashicorp/consul` y `hashicorp/vault` que Scattered ya usaba.
+- `open_telemetry_collector`, `prometheus`, `grafana` y `zipkin-traces` siguen corriendo, pero fuera de Aspire los servicios ya no les envían telemetría.
 
 ### `main`
 
@@ -300,6 +306,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-20 | `features/flow16` | Capítulo 17: sin cambios de contenedores; dashboard de Aspire como proceso local |
 | 2026-11-20 | `features/flow15` | Capítulo 16: sin cambios de contenedores |
 | 2026-11-20 | `features/flow14` | Capítulo 15: sin cambios de contenedores |
 | 2026-11-20 | `features/flow13` | Capítulo 14: nacen collector, Prometheus, Grafana y Zipkin (reutilizados de `main`); `rabbitmq` recreado con 3.8.34 y `enabled_plugins`. **Los 12 contenedores corriendo** |
