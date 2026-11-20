@@ -3,9 +3,9 @@
 Los logs (capítulo 7) dicen *qué* pasó en cada servicio, y los health checks (capítulo 13) si un servicio puede trabajar. Faltan dos preguntas: **¿por dónde pasó una petición y cuánto tardó en cada servicio?** (trazas) y **¿cuántas peticiones, errores y mensajes hay, y cómo evolucionan?** (métricas). En este capítulo los servicios se instrumentan con **OpenTelemetry**, el estándar abierto de observabilidad, y envían trazas y métricas a un **collector**, que las reparte: trazas a **Zipkin**, métricas a **Prometheus**, y **Grafana** dibuja los paneles. RabbitMQ publica también sus métricas.
 
 <!-- nav:start -->
-[← Capítulo 13](flow12.md) · [Índice del flujo](README.md) · Siguiente: capítulo 15 (pendiente)
+[← Capítulo 13](flow12.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 15 →](flow14.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · **14** · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · **14** · [15](flow14.md) · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

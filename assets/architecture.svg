@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1090" width="1400" height="1090" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-  <title>Scattered - Arquitectura (features/flow13 · 14-monitorizacion-sistemas-distribuidos)</title>
+  <title>Scattered - Arquitectura (features/flow14 · 15-Api-key)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
@@ -74,7 +74,7 @@
 
   <rect width="1400" height="1090" rx="18" fill="#0f172a"/>
   <text x="40" y="50" fill="#f8fafc" font-size="24" font-weight="700">Scattered</text>
-  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow13 (14-monitorizacion): trazas y métricas</text>
+  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow14 (15-Api-key): API key en el gateway privado</text>
 
   <!-- Leyenda -->
   <rect x="40" y="72" width="34" height="20" rx="5" class="service"/>
@@ -149,6 +149,8 @@
   <text class="tag-text" x="105" y="656">Minimal API</text>
   <rect class="tag" x="156" y="640" width="142" height="24" rx="12"/>
   <text class="tag-text" x="227" y="656">Api Gateway · YARP</text>
+  <rect class="tag" x="306" y="640" width="48" height="24" rx="12"/>
+  <text class="tag-text" x="330" y="656">apiKey</text>
 
   <rect class="endpoint" x="70" y="676" width="270" height="44" rx="22"/>
   <text class="endpoint-text" x="205" y="703">GET /  →  "Hello World!"</text>
@@ -237,7 +239,7 @@
   <rect class="panel" x="40" y="860" width="1320" height="200" rx="16"/>
   <text x="62" y="892" fill="#f8fafc" font-size="18" font-weight="600">Común</text>
   <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 10 proyectos ejecutables</text>
-  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 15 en adelante: API key, rate limiting (.NET 7)</text>
+  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 16: rate limiting y paso a .NET 7</text>
 
   <rect class="card" x="60" y="910" width="330" height="130" rx="12"/>
   <text class="card-text" x="225" y="942">Scattered.Shared.Setup</text>

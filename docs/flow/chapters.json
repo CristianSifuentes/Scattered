@@ -40,7 +40,7 @@
    "summary": "Trazas y métricas con OpenTelemetry → collector → Zipkin y Prometheus, paneles en Grafana; métricas de RabbitMQ"},
   {"flow": 14, "chapter": "15", "short": "API Key", "original": "15-Api-key",
    "title": "[API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes",
-   "summary": "API Key"},
+   "summary": "El gateway privado exige la cabecera apiKey (middleware, salvo /health); documentación de Shared.Discovery y Shared.Secrets"},
   {"flow": 15, "chapter": "16", "short": "Rate limiting", "original": "16-rate-limiting",
    "title": "[Rate Limiting](https://www.netmentor.es/entrada/rate-limiting)",
    "summary": "Rate limiting (y paso a .NET 7)"},
