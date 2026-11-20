@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1090" width="1400" height="1090" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-  <title>Scattered - Arquitectura (features/flow5 · 06-Service-discovery-registry)</title>
+  <title>Scattered - Arquitectura (features/flow6 · 07-Logs-en-la-nube)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
@@ -12,6 +12,9 @@
     </marker>
     <marker id="arrow-discovery" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-log" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#f472b6"/>
     </marker>
     <marker id="arrow-secret" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#c084fc"/>
@@ -36,6 +39,8 @@
     .tag-warn { fill: #f87171; }
     .secret-live { fill: none; stroke: #c084fc; stroke-width: 2.5; stroke-linejoin: round; marker-end: url(#arrow-secret); }
     .discovery-live { fill: none; stroke: #34d399; stroke-width: 2.5; stroke-linejoin: round; marker-end: url(#arrow-discovery); }
+    .log-live { fill: none; stroke: #f472b6; stroke-width: 2.5; stroke-linejoin: round; marker-end: url(#arrow-log); }
+    .logs { fill: #500724; stroke: #f472b6; stroke-width: 2; }
     .registry { fill: #022c22; stroke: #34d399; stroke-width: 2; }
     .line { fill: none; stroke: #9fb0c8; stroke-width: 2.5; stroke-linejoin: round; marker-end: url(#arrow-live); }
     .join { fill: none; stroke: #9fb0c8; stroke-width: 2.5; stroke-linejoin: round; }
@@ -65,7 +70,7 @@
 
   <rect width="1400" height="1090" rx="18" fill="#0f172a"/>
   <text x="40" y="50" fill="#f8fafc" font-size="24" font-weight="700">Scattered</text>
-  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow5 (06-Service-discovery-registry): direcciones en Consul</text>
+  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow6 (07-Logs-en-la-nube): logs en Graylog</text>
 
   <!-- Leyenda -->
   <rect x="40" y="72" width="34" height="20" rx="5" class="service"/>
@@ -86,6 +91,8 @@
   <text class="legend" x="1185" y="117">Lee secretos</text>
   <path class="discovery-live" d="M935 52 H975"/>
   <text class="legend" x="985" y="57">Consulta Consul</text>
+  <path class="log-live" d="M935 22 H975"/>
+  <text class="legend" x="985" y="27">Envía logs</text>
 
   <!-- Conexiones planificadas (ninguna existe aún) -->
   <path class="async-live" d="M340 288 H400 V175 H560"/>
@@ -108,6 +115,7 @@
   <path class="plan" d="M800 590 V685 H1120"/>
   <path class="plan" d="M760 590 V800 H1100"/>
   <path class="discovery-live" d="M545 860 V722"/>
+  <path class="log-live" d="M840 590 V640 H878"/>
 
   <!-- Public API -->
   <rect class="gateway" x="40" y="120" width="320" height="440" rx="16"/>
@@ -166,16 +174,23 @@
 
   <rect class="service" x="560" y="490" width="300" height="100" rx="12"/>
   <text class="service-text" x="710" y="522">Orders Microservice</text>
-  <text class="code" x="710" y="546">GET /order/{id} → mismo id</text>
-  <text class="code" x="710" y="566">POST /order → Guid nuevo</text>
+  <text class="code" x="710" y="546">GET /order/{id} → ejemplo + LogError</text>
+  <text class="code" x="710" y="566">POST → 202 → order-queue → Consumer</text>
   <rect class="tag" x="742" y="478" width="118" height="24" rx="12"/>
   <text class="tag-text" x="801" y="494">Web API · :50220</text>
-  <rect class="tag-warn" x="572" y="478" width="160" height="24" rx="12"/>
-  <text class="tag-text" x="652" y="494">⚠ 500: falta publisher</text>
+  <rect class="tag" x="572" y="478" width="160" height="24" rx="12"/>
+  <text class="tag-text" x="652" y="494">dominio · :7225 consumer</text>
 
   <rect class="tag" x="406" y="163" width="148" height="24" rx="12"/>
   <text class="tag-text" x="480" y="179">publisher · consumer</text>
   <text class="code" x="480" y="206" style="fill:#fcd34d">subscription-queue</text>
+
+  <!-- Graylog: logs centralizados -->
+  <rect class="logs" x="880" y="605" width="150" height="70" rx="12"/>
+  <text class="service-text" x="955" y="635" style="fill:#fce7f3">Graylog</text>
+  <text class="code" x="955" y="657" style="fill:#f9a8d4">GELF UDP :12201</text>
+  <rect class="tag" x="895" y="593" width="120" height="22" rx="11"/>
+  <text class="tag-text" x="955" y="608">Docker · :9000</text>
 
   <!-- Consul: registro de servicios -->
   <rect class="registry" x="410" y="615" width="270" height="105" rx="12"/>
@@ -212,7 +227,8 @@
   <!-- Común: src/Shared -->
   <rect class="panel" x="40" y="860" width="1320" height="200" rx="16"/>
   <text x="62" y="892" fill="#f8fafc" font-size="18" font-weight="600">Común</text>
-  <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 7 proyectos ejecutables</text>
+  <text x="132" y="892" fill="#94a3b8" font-size="14">src/Shared · lo usan los 8 proyectos ejecutables</text>
+  <text x="1340" y="892" fill="#94a3b8" font-size="13" text-anchor="end">cap. 8 en adelante: MySQL, MongoDB, health checks, OpenTelemetry…</text>
 
   <rect class="card" x="60" y="910" width="330" height="130" rx="12"/>
   <text class="card-text" x="225" y="942">Scattered.Shared.Setup</text>
@@ -242,10 +258,10 @@
   <text class="card-note" x="1017" y="1003">Shared.Communication</text>
   <text class="card-note" x="1017" y="1023">(.RabbitMQ) + Serialization</text>
 
-  <rect class="planned" x="1135" y="910" width="205" height="130" rx="12"/>
-  <text class="card-text muted" x="1237" y="942">Resto de la plataforma</text>
-  <rect class="tag-next" x="1172" y="955" width="130" height="24" rx="12"/>
-  <text class="tag-next-text" x="1237" y="971">cap. 7 en adelante</text>
-  <text class="card-note muted" x="1237" y="1003">Graylog, MySQL, MongoDB,</text>
-  <text class="card-note muted" x="1237" y="1023">OpenTelemetry, Zipkin…</text>
+  <rect class="card" x="1135" y="910" width="205" height="130" rx="12" style="stroke:#f472b6"/>
+  <text class="card-text" x="1237" y="942">Scattered.Shared.Logging</text>
+  <rect class="tag" x="1167" y="955" width="140" height="24" rx="12"/>
+  <text class="tag-text" x="1237" y="971">Serilog · Graylog</text>
+  <text class="card-note" x="1237" y="1003">sinks Console y Graylog</text>
+  <text class="card-note" x="1237" y="1023">(solo Orders los activa)</text>
 </svg>

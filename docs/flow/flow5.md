@@ -3,9 +3,9 @@
 Hasta el capítulo 5 cada servicio sabía **dónde** estaba lo que necesitaba porque estaba escrito en su `appsettings.json`: `Bus:RabbitMQ:Hostname = localhost`, `SecretManager:VaultUrl = http://localhost:8200`. En este capítulo esas direcciones salen de la configuración y pasan a un **registro de servicios**, HashiCorp **Consul**. Cada proceso solo conoce la dirección de Consul y le pregunta por nombre: "¿dónde está `SecretManager`?", "¿dónde está `RabbitMQ`?". Si mañana Vault cambia de máquina o de puerto, se actualiza el registro y ningún servicio se recompila ni se reconfigura.
 
 <!-- nav:start -->
-[← Capítulo 5](flow4.md) · [Índice del flujo](README.md) · Siguiente: capítulo 7 (pendiente)
+[← Capítulo 5](flow4.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 7 →](flow6.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · **6** · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · **6** · [7](flow6.md) · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

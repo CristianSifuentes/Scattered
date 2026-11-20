@@ -18,8 +18,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 3–4 | [Producers/Consumers con RabbitMQ](flow3.md) | `features/flow3` | [`03-04-Producers-consumers-RabbitMQ`](https://github.com/ElectNewt/Distribt/tree/03-04-Producers-consumers-RabbitMQ) | Comunicación asíncrona: el gateway publica las suscripciones y un consumer las procesa |
 | 5 | [Gestión de credenciales](flow4.md) | `features/flow4` | [`05-Gestion-credenciales`](https://github.com/ElectNewt/Distribt/tree/05-Gestion-credenciales) | Las credenciales de RabbitMQ salen de Vault: secreto KV para el consumer y usuario dinámico para el gateway |
 | 6 | [Service discovery](flow5.md) | `features/flow5` | [`06-Service-discovery-registry`](https://github.com/ElectNewt/Distribt/tree/06-Service-discovery-registry) | Las direcciones de Vault y RabbitMQ salen de Consul; los microservicios se registran pero los gateways aún no lo usan |
+| 7 | [Logs en la nube](flow6.md) | `features/flow6` | [`07-Logs-en-la-nube`](https://github.com/ElectNewt/Distribt/tree/07-Logs-en-la-nube) | Serilog y Graylog para centralizar logs (solo Orders los envía); Orders se arregla y estrena mensajes de dominio con su consumer |
 
-Siguiente: capítulo 7 · Logs en la nube (rama `features/flow6`, original [`07-Logs-en-la-nube`](https://github.com/ElectNewt/Distribt/tree/07-Logs-en-la-nube)).
+Siguiente: capítulo 8 · CQRS (rama `features/flow7`, original [`08-CQRS`](https://github.com/ElectNewt/Distribt/tree/08-CQRS)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -69,9 +70,9 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/06-Service-discovery-registry..origin/07-Logs-en-la-nube
-git diff --stat  origin/06-Service-discovery-registry origin/07-Logs-en-la-nube
-git diff         origin/06-Service-discovery-registry origin/07-Logs-en-la-nube
+git log --oneline origin/07-Logs-en-la-nube..origin/08-CQRS
+git diff --stat  origin/07-Logs-en-la-nube origin/08-CQRS
+git diff         origin/07-Logs-en-la-nube origin/08-CQRS
 ```
 
 ### 2. Aplicar ese cambio en Scattered
@@ -80,16 +81,16 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow6 features/flow5
+git switch -c features/flow7 features/flow6
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/06-Service-discovery-registry origin/07-Logs-en-la-nube -- . ':(exclude)README.md' ':(exclude)assets' \
+git diff origin/07-Logs-en-la-nube origin/08-CQRS -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/07.patch
+  > /tmp/08.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/07.patch   # comprobar que aplica limpio
-git apply /tmp/07.patch
+git apply --check /tmp/08.patch   # comprobar que aplica limpio
+git apply /tmp/08.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -124,7 +125,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow5 main
+git diff -M --stat features/flow6 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.
