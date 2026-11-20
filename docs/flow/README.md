@@ -22,8 +22,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 8 | [CQRS](flow7.md) | `features/flow7` | [`08-CQRS`](https://github.com/ElectNewt/Distribt/tree/08-CQRS) | Products se divide en API de escritura (MySQL), API de lectura (MongoDB) y un consumer que sincroniza; handlers con Scrutor y primer test de API |
 | 9 | [Event Sourcing](flow8.md) | `features/flow8` | [`09-Event-sourcing`](https://github.com/ElectNewt/Distribt/tree/09-Event-sourcing) | Orders guarda sus pedidos como eventos en MongoDB (event store) y reconstruye el estado al leer; nueva librería Shared.EventSourcing |
 | 10 | [Consistencia eventual](flow9.md) | `features/flow9` | [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) | Sin código nuevo (mismo commit que el 9): guía con mediciones de la consistencia eventual en Products, Orders y Subscriptions |
+| 11 | [Respuestas de API unificadas](flow10.md) | `features/flow10` | [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api) | Respuestas unificadas (ResultDto) con ROP; Orders guarda los nombres de producto que le llegan por integración; Graylog desde Consul |
 
-Siguiente: capítulo 11 · Respuestas de API unificadas (rama `features/flow10`, original [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api)).
+Siguiente: capítulo 12 · Patrón SAGA (rama `features/flow11`, original [`12-Saga`](https://github.com/ElectNewt/Distribt/tree/12-Saga)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -73,9 +74,9 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/10-Consistencia-eventual..origin/11-unificar-respuestas-api
-git diff --stat  origin/10-Consistencia-eventual origin/11-unificar-respuestas-api
-git diff         origin/10-Consistencia-eventual origin/11-unificar-respuestas-api
+git log --oneline origin/11-unificar-respuestas-api..origin/12-Saga
+git diff --stat  origin/11-unificar-respuestas-api origin/12-Saga
+git diff         origin/11-unificar-respuestas-api origin/12-Saga
 ```
 
 ### 2. Aplicar ese cambio en Scattered
@@ -84,16 +85,16 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow10 features/flow9
+git switch -c features/flow11 features/flow10
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/10-Consistencia-eventual origin/11-unificar-respuestas-api -- . ':(exclude)README.md' ':(exclude)assets' \
+git diff origin/11-unificar-respuestas-api origin/12-Saga -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/11.patch
+  > /tmp/12.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/11.patch   # comprobar que aplica limpio
-git apply /tmp/11.patch
+git apply --check /tmp/12.patch   # comprobar que aplica limpio
+git apply /tmp/12.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -128,7 +129,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow9 main
+git diff -M --stat features/flow10 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.

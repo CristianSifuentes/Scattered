@@ -15,5 +15,8 @@ global using System.Threading.Tasks;
 global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.DependencyInjection;
 global using Scattered.Shared.Setup.Databases;
+global using ROP;
+global using ROP.APIExtensions;
+
 
  

@@ -28,7 +28,7 @@
    "summary": "Sin código nuevo (mismo commit que el 9): guía con mediciones de la consistencia eventual en Products, Orders y Subscriptions"},
   {"flow": 10, "chapter": "11", "short": "Respuestas de API unificadas", "original": "11-unificar-respuestas-api",
    "title": "[Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming)",
-   "summary": "Respuestas de API unificadas con ROP"},
+   "summary": "Respuestas unificadas (ResultDto) con ROP; Orders guarda los nombres de producto que le llegan por integración; Graylog desde Consul"},
   {"flow": 11, "chapter": "12", "short": "Patrón SAGA", "original": "12-Saga",
    "title": "[Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas",
    "summary": "Patrón SAGA"},

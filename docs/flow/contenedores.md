@@ -10,7 +10,7 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow9` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow10` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
@@ -21,7 +21,7 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow9` en la copia
 | `mongo_graylog` | `mongo:4.2` (4.2.24) | **Corriendo** | `main` (11-nov), reutilizado | `mongod`: configuración de Graylog (usuarios, inputs) |
 | `elasticserach_graylog` | `elasticsearch-oss:7.10.2` | **Corriendo** | `main` (11-nov), reutilizado | Elasticsearch: índice `graylog_0` con los logs |
 | `MySql` | `mysql:8.0` (8.0.46) | **Corriendo** | `main` (11-nov), reutilizado | `mysqld`: base `scattered`, tabla `Products` (modelo de escritura de Products) |
-| `MongoDb` | `mongo:latest` (9.0.4) | **Corriendo** | `main` (11-nov), reutilizado | `mongod`: base `scattered`, colecciones `Products` (lectura de Products) y `EventsOrders` (event store de Orders) |
+| `MongoDb` | `mongo:latest` (9.0.4) | **Corriendo** | `main` (11-nov), reutilizado | `mongod`: base `scattered`, colecciones `Products` (lectura de Products), `EventsOrders` (event store de Orders) y `ProductName` (copia de nombres en Orders) |
 | `open_telemetry_collector` | `otel/opentelemetry-collector:latest` | Detenido | `main` (11-nov) | — |
 | `prometheus` | `prom/prometheus` | Detenido | `main` (11-nov) | — |
 | `grafana` | `grafana/grafana` | Detenido | `main` (11-nov) | — |
@@ -29,14 +29,14 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow9` en la copia
 
 - Los 4 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow9` (mismo código que `features/flow8`) necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `features/flow10` necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
 - `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 (9–10 ✔) | 13 | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 (9–11 ✔) | 13 | 14–16 | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -108,6 +108,12 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 ### Capítulo 10 · Consistencia eventual · `features/flow9` ✔
 
 - **No cambia nada**: la rama original es el mismo commit que la del capítulo 9. La guía usa los contenedores existentes para medir cuánto tarda la vista de MongoDB en reflejar una escritura en MySQL.
+
+### Capítulo 11 · Respuestas unificadas · `features/flow10` ✔
+
+- **No nace ningún contenedor.** `graylog` se registra en Consul (`localhost:12201`) y todos los servicios piden su dirección al arrancar: sin ese registro no arranca ninguno.
+- `MongoDb` suma la colección `ProductName` (la copia de nombres de producto de Orders).
+- `rabbitmq` suma `order-domain-queue` y los enlaces `products.exchange → order.exchange` y `order.exchange → order-queue` (`external`). RabbitMQ no borra al reiniciar el enlace antiguo `order.exchange → order-queue` (`order`): hay que eliminarlo a mano en un broker que venga de capítulos anteriores (ver [capítulo 11](flow10.md#particularidades)).
 
 ### Capítulo 13 · Health checks (pendiente)
 
@@ -277,6 +283,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-20 | `features/flow10` | Capítulo 11: sin contenedores nuevos; Graylog registrado en Consul, `ProductName` en MongoDB, `rabbitmq` reiniciado y enlace antiguo de `order.exchange` eliminado |
 | 2026-11-19 | `features/flow9` | Capítulo 10: sin cambios de contenedores (rama solo de documentación) |
 | 2026-11-19 | `features/flow8` | Capítulo 9: sin contenedores nuevos; `MongoDb` guarda el event store de Orders (`EventsOrders`). 8 corriendo, 4 de `main` detenidos |
 | 2026-11-19 | `features/flow7` | Capítulo 8: nacen `MySql` y `MongoDb` (reutilizados de `main`, con datos previos); `rabbitmq` reiniciado para cargar `products.exchange`. 8 corriendo, 4 de `main` detenidos |

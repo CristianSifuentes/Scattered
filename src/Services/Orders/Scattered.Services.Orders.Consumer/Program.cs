@@ -1,9 +1,13 @@
+using Scattered.Services.Orders.BusinessLogic;
 using Scattered.Services.Orders.Consumer.Handler;
 
-WebApplication app = DefaultScatteredWebApplication.Create(args, x =>
+WebApplication app = DefaultScatteredWebApplication.Create(args, builder =>
 {
-    x.Services.AddHandlersInAssembly<OrderCreatedHandler>();
-    x.Services.AddServiceBusDomainConsumer(x.Configuration);
+    builder.Services.AddProductService(builder.Configuration);
+
+    builder.Services.AddHandlersInAssembly<OrderCreatedHandler>();
+    builder.Services.AddServiceBusDomainConsumer(builder.Configuration);
+    builder.Services.AddServiceBusIntegrationConsumer(builder.Configuration);
 });
 
 
