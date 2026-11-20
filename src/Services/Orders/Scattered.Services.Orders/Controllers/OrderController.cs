@@ -1,36 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Scattered.Services.Orders.Dto;
+using Scattered.Services.Products.Dto;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Scattered.Services.Orders.Controllers;
 [ApiController]
 [Route("[controller]")]
 public class OrderController
 {
-    private readonly IIntegrationMessagePublisher _integrationMessagePublisher;
-
-    public OrderController(IIntegrationMessagePublisher integrationMessagePublisher)
+    private readonly IDomainMessagePublisher _domainMessagePublisher;
+    private readonly ILogger<OrderController>  _logger;
+    
+    public OrderController(ILogger<OrderController> logger,  IDomainMessagePublisher domainMessagePublisher)
     {
-        _integrationMessagePublisher = integrationMessagePublisher;
+        _domainMessagePublisher = domainMessagePublisher;
+        _logger = logger;
     }
 
     [HttpGet("{orderId}")]
-    public async Task<OrderDto> GetOrder(Guid orderId)
+    public Task<OrderDto> GetOrder(Guid orderId)
     {
-        OrderDto orderDto = new OrderDto(orderId);
-        await _integrationMessagePublisher.Publish(orderDto);
-        //TODO: logic
-        return orderDto;
+        _logger.LogError($"esto es un mensaje de ejemplo con el order {orderId}");
+
+        //Todo, change for a real one as this one is only to test the logger.
+        return Task.FromResult(new OrderDto(orderId, new OrderAddress("stree1", "postalCode"), 
+            new PersonalDetails("name", "surname"), new List<ProductDto>()));
     }
 
-    [HttpPost(Name = "addorder")]
-    public Task<Guid> AddOrder(OrderDto order)
+    [HttpGet("getorderstatus/{orderId}")]
+    public Task<OrderDto> GetOrderStatus(Guid orderId)
     {
-        //TODO: logic
-        return Task.FromResult(Guid.NewGuid());
+        throw new NotImplementedException();
     }
-
-
-    //TODO: finish the dto
-    //TODO: move
-    public record OrderDto(Guid orderId);
+    
+    [HttpPost(Name = "createorder")]
+    public async Task<ActionResult<Guid>> CreateOrder(CreateOrderDto createOrder)
+    {
+        OrderDto orderDto = new OrderDto(Guid.NewGuid(), createOrder.orderAddress, createOrder.PersonalDetails,
+            createOrder.Products);
+        await _domainMessagePublisher.Publish(orderDto, routingKey: "order");
+        return new AcceptedResult($"getorderstatus/{orderDto.orderId}", orderDto.orderId);
+    }
 }
 

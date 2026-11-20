@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Scattered.Shared.Logging;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace Scattered.Shared.Setup.API;
 
@@ -9,7 +11,8 @@ public static class DefaultScatteredWebApplication
     public static WebApplication Create(Action<WebApplicationBuilder>? webappBuilder = null)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
-        
+        builder.Host.ConfigureSerilog();
+     
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -18,6 +21,7 @@ public static class DefaultScatteredWebApplication
         
         builder.Services.AddServiceDiscovery(builder.Configuration);
         builder.Services.AddSecretManager(builder.Configuration);
+        builder.Services.AddLogging(logger => logger.AddSerilog());
 
         if (webappBuilder != null)
         {

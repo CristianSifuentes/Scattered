@@ -11,6 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Scattered.Shared.Api\Scattered.Shared.Api.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Discovery\Scattered.Shared.Discovery.csproj" />
+    <ProjectReference Include="..\Scattered.Shared.Logging\Scattered.Shared.Logging.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Secrets\Scattered.Shared.Secrets.csproj" />
     <ProjectReference Include="..\Scattered.Shared.Serialization\Scattered.Shared.Serialization.csproj" />
     <ProjectReference Include="..\Shared.Communication\Scattered.Shared.Communication.RabbitMQ\Scattered.Shared.Communication.RabbitMQ.csproj" />

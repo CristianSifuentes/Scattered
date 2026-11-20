@@ -16,7 +16,7 @@
    "summary": "Las direcciones de Vault y RabbitMQ salen de Consul; los microservicios se registran pero los gateways aún no lo usan"},
   {"flow": 6, "chapter": "7", "short": "Logs en la nube", "original": "07-Logs-en-la-nube",
    "title": "[Sistema de logs](https://www.netmentor.es/entrada/servicio-logs-graylog) con Graylog y Serilog",
-   "summary": "Logs con Serilog y Graylog"},
+   "summary": "Serilog y Graylog para centralizar logs (solo Orders los envía); Orders se arregla y estrena mensajes de dominio con su consumer"},
   {"flow": 7, "chapter": "8", "short": "CQRS", "original": "08-CQRS",
    "title": "[CQRS](https://www.netmentor.es/entrada/patron-cqrs-explicado-10-minutos) para separar lecturas de escrituras",
    "summary": "CQRS en Products"},
