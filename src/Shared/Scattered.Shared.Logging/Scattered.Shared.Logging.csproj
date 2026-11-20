@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <RootNamespace>Scattered.Shared.Logging</RootNamespace>
     </PropertyGroup>
 
@@ -19,5 +15,6 @@
     <ItemGroup>
       <ProjectReference Include="..\Scattered.Shared.Discovery\Scattered.Shared.Discovery.csproj" />
     </ItemGroup>
-
+    
+    <Import Project="../../../GlobalSettings.msbuild" />
 </Project>

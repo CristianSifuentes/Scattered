@@ -31,7 +31,7 @@
    "summary": "Respuestas unificadas (ResultDto) con ROP; Orders guarda los nombres de producto que le llegan por integración; Graylog desde Consul"},
   {"flow": 11, "chapter": "12", "short": "Patrón SAGA", "original": "12-Saga",
    "title": "[Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas",
-   "summary": "Patrón SAGA"},
+   "summary": "SAGA solo en teoría (sin código en el original); GlobalSettings.msbuild común para Shared y GetByIdOrDefaultAsync en el event sourcing"},
   {"flow": 12, "chapter": "13", "short": "Health checks", "original": "13-Health-Checks",
    "title": "[Health checks](https://www.netmentor.es/entrada/health-checks-asp-net)",
    "summary": "Health checks"},
