@@ -1,6 +1,4 @@
 using Scattered.Services.Subscriptions.Dtos;
-using Scattered.Shared.Communication.Consumer.Handler;
-using Scattered.Shared.Communication.Messages;
 
 namespace Scattered.Services.Subscriptions.Consumer.Handler;
 

@@ -1,6 +1,5 @@
 using Scattered.Shared.Communication.Consumer.Host;
 using Scattered.Shared.Communication.Consumer.Manager;
-using Scattered.Shared.Communication.Messages;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Scattered.Services.Subscriptions.Consumer.Controllers;

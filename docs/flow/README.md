@@ -16,8 +16,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 1 | [Introducción](flow1.md) | `features/flow1` | [`01-Introduccion`](https://github.com/ElectNewt/Distribt/tree/01-Introduccion) | Esqueleto de APIs y microservicios con un arranque común |
 | 2 | [Patrón API Gateway](flow2.md) | `features/flow2` | [`02-patron-api-gateway`](https://github.com/ElectNewt/Distribt/tree/02-patron-api-gateway) | Las APIs pública y privada enrutan hacia Orders y Products con YARP |
 | 3–4 | [Producers/Consumers con RabbitMQ](flow3.md) | `features/flow3` | [`03-04-Producers-consumers-RabbitMQ`](https://github.com/ElectNewt/Distribt/tree/03-04-Producers-consumers-RabbitMQ) | Comunicación asíncrona: el gateway publica las suscripciones y un consumer las procesa |
+| 5 | [Gestión de credenciales](flow4.md) | `features/flow4` | [`05-Gestion-credenciales`](https://github.com/ElectNewt/Distribt/tree/05-Gestion-credenciales) | Las credenciales de RabbitMQ salen de Vault: secreto KV para el consumer y usuario dinámico para el gateway |
 
-Siguiente: capítulo 5 · Gestión de credenciales (rama `features/flow4`, original [`05-Gestion-credenciales`](https://github.com/ElectNewt/Distribt/tree/05-Gestion-credenciales)).
+Siguiente: capítulo 6 · Service discovery (rama `features/flow5`, original [`06-Service-discovery-registry`](https://github.com/ElectNewt/Distribt/tree/06-Service-discovery-registry)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -67,9 +68,9 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/03-04-Producers-consumers-RabbitMQ..origin/05-Gestion-credenciales
-git diff --stat  origin/03-04-Producers-consumers-RabbitMQ origin/05-Gestion-credenciales
-git diff         origin/03-04-Producers-consumers-RabbitMQ origin/05-Gestion-credenciales
+git log --oneline origin/05-Gestion-credenciales..origin/06-Service-discovery-registry
+git diff --stat  origin/05-Gestion-credenciales origin/06-Service-discovery-registry
+git diff         origin/05-Gestion-credenciales origin/06-Service-discovery-registry
 ```
 
 ### 2. Aplicar ese cambio en Scattered
@@ -78,16 +79,16 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow4 features/flow3
+git switch -c features/flow5 features/flow4
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
-git diff origin/03-04-Producers-consumers-RabbitMQ origin/05-Gestion-credenciales -- . ':(exclude)README.md' ':(exclude)assets' \
+git diff origin/05-Gestion-credenciales origin/06-Service-discovery-registry -- . ':(exclude)README.md' ':(exclude)assets' \
   | sed 's/Distribt/Scattered/g; s/distribt/scattered/g' \
-  > /tmp/05.patch
+  > /tmp/06.patch
 
 cd ~/Documents/workspace/NET/Scattered
-git apply --check /tmp/05.patch   # comprobar que aplica limpio
-git apply /tmp/05.patch
+git apply --check /tmp/06.patch   # comprobar que aplica limpio
+git apply /tmp/06.patch
 ```
 
 Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícalo con `git apply --3way` o a mano.
@@ -122,7 +123,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow3 main
+git diff -M --stat features/flow4 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.
