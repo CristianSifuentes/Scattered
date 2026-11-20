@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Scattered.Tests.Services.Subscriptions.ApiTests;
 
-public class UnitTest1
+public class SubscriptionControllerTest
 {
     [Fact]
     public async Task WhenSubscriptionApi_Then_EventPublished()

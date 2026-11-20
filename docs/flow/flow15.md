@@ -3,9 +3,9 @@
 Una API key (capítulo 15) dice **quién** llama; el **rate limiting** decide **cuántas veces** puede hacerlo en un periodo. Sirve para proteger el sistema de abusos o de un cliente con un error que entra en bucle, y para repartir la capacidad entre clientes. .NET 7 trae un limitador integrado (`System.Threading.RateLimiting` y el middleware de ASP.NET Core), así que el capítulo empieza por **subir todo el proyecto a .NET 7** y después añade un ejemplo en el gateway privado: un endpoint que admite 2 llamadas por hora y por API key.
 
 <!-- nav:start -->
-[← Capítulo 15](flow14.md) · [Índice del flujo](README.md) · Siguiente: capítulo 17 (pendiente)
+[← Capítulo 15](flow14.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 17 →](flow16.md)
 
-Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · [14](flow13.md) · [15](flow14.md) · **16** · 17
+Progreso: [1](flow1.md) · [2](flow2.md) · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · [7](flow6.md) · [8](flow7.md) · [9](flow8.md) · [10](flow9.md) · [11](flow10.md) · [12](flow11.md) · [13](flow12.md) · [14](flow13.md) · [15](flow14.md) · **16** · [17](flow16.md)
 <!-- nav:end -->
 
 ## Contenido

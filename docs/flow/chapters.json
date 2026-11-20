@@ -46,5 +46,5 @@
    "summary": "Paso a .NET 7 y rate limiting: 2 llamadas por hora y por API key en un endpoint del gateway privado (429)"},
   {"flow": 16, "chapter": "17", "short": ".NET Aspire", "original": "17-Aspire-version2023",
    "title": "[.NET Aspire](https://www.netmentor.es/entrada/introduccion-net-aspire) (rama aparte en el original)",
-   "summary": ".NET Aspire"}
+   "summary": ".NET 8, puertos 60xxx y .NET Aspire: AppHost con los 3 servicios de Products, ServiceDefaults y dashboard (rama aparte en el original)"}
 ]
