@@ -25,7 +25,7 @@
    "summary": "Orders guarda sus pedidos como eventos en MongoDB (event store) y reconstruye el estado al leer; nueva librería Shared.EventSourcing"},
   {"flow": 9, "chapter": "10", "short": "Consistencia eventual", "original": "10-Consistencia-eventual",
    "title": "[Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios",
-   "summary": "Consistencia eventual entre microservicios"},
+   "summary": "Sin código nuevo (mismo commit que el 9): guía con mediciones de la consistencia eventual en Products, Orders y Subscriptions"},
   {"flow": 10, "chapter": "11", "short": "Respuestas de API unificadas", "original": "11-unificar-respuestas-api",
    "title": "[Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming)",
    "summary": "Respuestas de API unificadas con ROP"},

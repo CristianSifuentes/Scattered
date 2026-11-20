@@ -21,8 +21,9 @@ Scattered replica el curso de Distribt capítulo a capítulo para entender cómo
 | 7 | [Logs en la nube](flow6.md) | `features/flow6` | [`07-Logs-en-la-nube`](https://github.com/ElectNewt/Distribt/tree/07-Logs-en-la-nube) | Serilog y Graylog para centralizar logs (solo Orders los envía); Orders se arregla y estrena mensajes de dominio con su consumer |
 | 8 | [CQRS](flow7.md) | `features/flow7` | [`08-CQRS`](https://github.com/ElectNewt/Distribt/tree/08-CQRS) | Products se divide en API de escritura (MySQL), API de lectura (MongoDB) y un consumer que sincroniza; handlers con Scrutor y primer test de API |
 | 9 | [Event Sourcing](flow8.md) | `features/flow8` | [`09-Event-sourcing`](https://github.com/ElectNewt/Distribt/tree/09-Event-sourcing) | Orders guarda sus pedidos como eventos en MongoDB (event store) y reconstruye el estado al leer; nueva librería Shared.EventSourcing |
+| 10 | [Consistencia eventual](flow9.md) | `features/flow9` | [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) | Sin código nuevo (mismo commit que el 9): guía con mediciones de la consistencia eventual en Products, Orders y Subscriptions |
 
-Siguiente: capítulo 10 · Consistencia eventual (rama `features/flow9`, original [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual)).
+Siguiente: capítulo 11 · Respuestas de API unificadas (rama `features/flow10`, original [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api)).
 <!-- chapters:end -->
 
 Documentos transversales, que se actualizan con cada capítulo:
@@ -72,7 +73,7 @@ Desde una copia de Distribt (por ejemplo `~/Documents/workspace/NET/DistribtOrig
 
 ```bash
 git fetch origin
-git log --oneline origin/09-Event-sourcing..origin/10-Consistencia-eventual   # vacío: 10 es el mismo commit que 09
+git log --oneline origin/10-Consistencia-eventual..origin/11-unificar-respuestas-api
 git diff --stat  origin/10-Consistencia-eventual origin/11-unificar-respuestas-api
 git diff         origin/10-Consistencia-eventual origin/11-unificar-respuestas-api
 ```
@@ -83,7 +84,7 @@ Crea la rama del capítulo a partir de la anterior y aplica el diff del original
 
 ```bash
 cd ~/Documents/workspace/NET/Scattered
-git switch -c features/flow9 features/flow8
+git switch -c features/flow10 features/flow9
 
 cd ~/Documents/workspace/NET/DistribtOrigin/Distribt
 git diff origin/10-Consistencia-eventual origin/11-unificar-respuestas-api -- . ':(exclude)README.md' ':(exclude)assets' \
@@ -127,7 +128,7 @@ Si el parche no aplica limpio (porque ya se hizo algún ajuste propio), aplícal
 Para ver cuánto falta para llegar a `main` de Scattered:
 
 ```bash
-git diff -M --stat features/flow8 main
+git diff -M --stat features/flow9 main
 ```
 
 `-M` empareja archivos renombrados en lugar de mostrarlos como borrados y nuevos.

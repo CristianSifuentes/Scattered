@@ -10,7 +10,7 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow8` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow9` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
@@ -29,14 +29,14 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow8` en la copia
 
 - Los 4 detenidos se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow8` necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `features/flow9` (mismo código que `features/flow8`) necesita `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
 - `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 (9 ✔) | 13 | 14–16 | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 (9–10 ✔) | 13 | 14–16 | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -104,6 +104,10 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 
 - **No nace ningún contenedor.** `MongoDb` pasa a guardar también el *event store* de Orders: la colección `EventsOrders`, con un documento por evento (`OrderCreated`, `OrderPaid`…) y un índice único `(AggregateType, AggregateId, AggregateVersion)`. `mongo-init.js` crea la colección, pero solo se ejecuta en un contenedor nuevo; si no existe, el driver la crea al insertar el primer evento.
 - La colección vive en la misma base `scattered` que la vista de Products; el original comenta que fuera de desarrollo iría en una base aparte.
+
+### Capítulo 10 · Consistencia eventual · `features/flow9` ✔
+
+- **No cambia nada**: la rama original es el mismo commit que la del capítulo 9. La guía usa los contenedores existentes para medir cuánto tarda la vista de MongoDB en reflejar una escritura en MySQL.
 
 ### Capítulo 13 · Health checks (pendiente)
 
@@ -273,6 +277,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-19 | `features/flow9` | Capítulo 10: sin cambios de contenedores (rama solo de documentación) |
 | 2026-11-19 | `features/flow8` | Capítulo 9: sin contenedores nuevos; `MongoDb` guarda el event store de Orders (`EventsOrders`). 8 corriendo, 4 de `main` detenidos |
 | 2026-11-19 | `features/flow7` | Capítulo 8: nacen `MySql` y `MongoDb` (reutilizados de `main`, con datos previos); `rabbitmq` reiniciado para cargar `products.exchange`. 8 corriendo, 4 de `main` detenidos |
 | 2026-11-19 | `features/flow6` | Capítulo 7: nacen `graylog` (recreado), `mongo_graylog` y `elasticserach_graylog` (reutilizados de `main`); `rabbitmq` reiniciado para cargar `order-queue`. 6 corriendo, 6 de `main` detenidos |

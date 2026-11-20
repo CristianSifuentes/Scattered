@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1090" width="1400" height="1090" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif">
-  <title>Scattered - Arquitectura (features/flow8 · 09-Event-sourcing)</title>
+  <title>Scattered - Arquitectura (features/flow9 · 10-Consistencia-eventual)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#64748b"/>
@@ -74,7 +74,7 @@
 
   <rect width="1400" height="1090" rx="18" fill="#0f172a"/>
   <text x="40" y="50" fill="#f8fafc" font-size="24" font-weight="700">Scattered</text>
-  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow8 (09-Event-sourcing): pedidos como eventos</text>
+  <text x="158" y="50" fill="#94a3b8" font-size="16">arquitectura · features/flow9 (10-Consistencia-eventual): mismo código que el cap. 9</text>
 
   <!-- Leyenda -->
   <rect x="40" y="72" width="34" height="20" rx="5" class="service"/>
