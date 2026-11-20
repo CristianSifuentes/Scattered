@@ -3,6 +3,8 @@ namespace Scattered.Services.Orders.Dto;
 
 public record CreateOrderRequest(DeliveryDetails DeliveryDetails, PaymentInformation PaymentInformation,
     List<ProductQuantity> Products);
+
+public record CreateOrderResponse(Guid OrderId, string Location);
     
 public record ProductQuantity(int ProductId, int Quantity);
 

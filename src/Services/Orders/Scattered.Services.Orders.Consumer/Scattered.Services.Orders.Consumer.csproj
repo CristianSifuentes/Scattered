@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\Shared\Scattered.Shared.Setup\Scattered.Shared.Setup.csproj" />
+      <ProjectReference Include="..\Scattered.Services.Orders.BusinessLogic\Scattered.Services.Orders.BusinessLogic.csproj" />
       <ProjectReference Include="..\Scattered.Services.Orders.Dto\Scattered.Services.Orders.Dto.csproj" />
     </ItemGroup>
 

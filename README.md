@@ -4,39 +4,44 @@
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow9`)** replica la rama [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) del proyecto original, que apunta al mismo commit que la 09 (`66a0e62`). El código es el del capítulo 9; esta rama solo añade documentación. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno está en **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow10`)** replica la rama [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api) del proyecto original (commit `92de34f`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow9` (nace de `features/flow8`; **sin cambios de código**) |
-| Capítulo del curso | 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios |
-| Rama original | [`10-Consistencia-eventual`](https://github.com/ElectNewt/Distribt/tree/10-Consistencia-eventual) (`66a0e62`, igual que `09-Event-sourcing`) |
-| Qué hay | Lo mismo que en el capítulo 9: gateways con YARP, suscripciones y pedidos por RabbitMQ, Products con CQRS, Orders con Event Sourcing, Vault, Consul y Graylog. La guía mide **cuánto tarda** cada parte en ponerse al día |
-| Qué falta | Respuestas de API unificadas (cap. 11), SAGA, health checks y observabilidad |
-| Infraestructura | La del capítulo 9: `./tools/local-development/up.sh` |
-| Guía del capítulo | [docs/flow/flow9.md](docs/flow/flow9.md) |
-| Siguiente capítulo | 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con ROP (`11-unificar-respuestas-api`) |
+| Rama | `features/flow10` (nace de `features/flow9`) |
+| Capítulo del curso | 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming) |
+| Rama original | [`11-unificar-respuestas-api`](https://github.com/ElectNewt/Distribt/tree/11-unificar-respuestas-api) (`92de34f`) |
+| Qué hay | Gateways con YARP; suscripciones y pedidos por RabbitMQ; Products con CQRS (ahora también al crear); Orders con Event Sourcing y su propia copia de los nombres de producto; **respuestas unificadas `ResultDto`** con ROP. Vault, Consul (también para Graylog) y Graylog |
+| Qué falta | SAGA (cap. 12), health checks y observabilidad. La conversión a ROP es parcial (problema heredado) |
+| Infraestructura | La del capítulo 9 + Graylog registrado en Consul: `./tools/local-development/up.sh` |
+| Guía del capítulo | [docs/flow/flow10.md](docs/flow/flow10.md) |
+| Siguiente capítulo | 12 · [Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas (`12-Saga`) |
 
 ## Qué cambió en este capítulo
 
-Respecto a `features/flow8` ([capítulo 9](docs/flow/flow8.md)) **no cambia el código**. El capítulo del curso es conceptual: explica la **consistencia eventual**, que Scattered practica desde el capítulo 3–4. Cuando los datos viajan por mensajes, una escritura confirmada no se ve en todas partes a la vez; el sistema acaba siendo consistente, pero no al instante. La guía lo mide sobre el código real:
+Respecto a `features/flow9` ([capítulo 10](docs/flow/flow9.md)) las APIs responden con un **formato común**, `ResultDto<T>` = `{"value", "errors", "success"}`, y la lógica se encadena con **Railway Oriented Programming** (`Result<T>`, `Bind`, `Then`, `Map`): un pedido inexistente ya no es un 500 sino un **404** con su mensaje. Además, la consistencia eventual llega entre servicios: los mensajes de integración de Products alimentan una copia local de los nombres en Orders.
 
-| Medición | Resultado |
-|---|---|
-| `PUT` en Products (MySQL) y lectura inmediata (MongoDB) | La escritura responde en ~60 ms; la lectura ve el cambio a los ~1,5 s de mediana (hasta 3 s). En 7 de 10 rondas se lee primero el dato antiguo |
-| Products.Consumer parado | La escritura sigue funcionando; la lectura devuelve el dato antiguo indefinidamente y se pone al día 2,9 s después de arrancar el consumer |
-| Orders y Subscriptions con sus consumers parados | `202` y `200` igualmente; el pedido ya se puede consultar (el event store es la fuente de verdad) y los avisos se procesan 1,1 s después de arrancar los consumers |
-| Con la fuga de conexiones acumulada (1346 conexiones) | Un `PUT` pasa de ~60 ms a 2,6 s |
+| Cambio | Dónde | Para qué |
+|---|---|---|
+| `Netmentor.ROP.ApiExtensions` + `ResultDto` en los controllers | `Shared.Setup`, Orders, Products.Api.Write, Subscriptions | Respuestas homogéneas y códigos HTTP según el resultado (201, 404…) |
+| `ProductCreatedHandler` | Products.Consumer | **Un producto creado ya llega a la vista de lectura** (faltaba desde el capítulo 8) |
+| `Orders.BusinessLogic`: `ProductNameService` + `ProductRepository` | `src/Services/Orders/` | Nombres de producto reales: caché → MongoDB `ProductName` → HTTP a Products.Api.Read |
+| `ProductModifierHandler` + `order-domain-queue` / `order-queue` | Orders.Consumer, `definitions.json` | Orders recibe los cambios de productos por integración (`products.exchange → order.exchange`) |
+| Graylog en Consul; conexión de MongoDB en `Shared.Databases` | `Shared.Logging`, `tools/consul/config.sh` | Menos direcciones y nombres de base escritos en el código |
+| Tests unitarios de `ProductNameService` (Moq) | `src/Tests/Services/Orders/` | 4 tests que pasan sin infraestructura |
+| Cláusula ética en `LICENSE` | raíz | Prohíbe usar el software en sistemas que dañen a personas |
 
 ```text
-Escritura confirmada                     ...un instante después...              Consistente
-PUT /product/… → 200 (MySQL)  ──▶  product-domain-queue  ──▶  Products.Consumer  ──▶  MongoDB (lectura)
-                  GET /product/{id} durante la ventana  →  dato ANTIGUO
+Antes (capítulo 9-10)                           Ahora (capítulo 11)
+GET /order/{inexistente} → 500 + traza          → 404 {"value":null,"errors":[{"message":"Order … not found"}],"success":false}
+POST /order/create       → 202 "guid"           → 201 {"value":{"orderId":"…","location":"order/getorderstatus/…"},…}
+productos: "fakeNAme"                           → nombres reales (copia local alimentada por mensajes de Products)
+POST /product (Products) → nunca llega a lectura → ProductCreatedHandler: llega a MongoDB y a Orders
 ```
 
-Lo que el código todavía no resuelve (y la guía detalla): un producto creado nunca converge a la lectura, un mensaje que falla se queda atascado sin ir a la *dead-letter*, y `getorderstatus` no está implementado, así que el cliente no tiene forma de saber cuándo está todo al día. Detalle en **[docs/flow/flow9.md](docs/flow/flow9.md)**.
+Lo que conviene saber al probarlo: la conversión a ROP es parcial (`markaspaid` devuelve un `Task` serializado, `markasdispatched` responde vacío y la lectura de Products sigue con 500); **actualizar un producto pone su stock y precio a 0** en la vista de lectura; y como todos los servicios piden Graylog a Consul al arrancar, sin ese registro no arranca ninguno. Si RabbitMQ conserva el enlace `order.exchange → order-queue` (`order`) de capítulos anteriores, hay que borrarlo. Detalle de cada cambio y el flujo end to end de 16 pasos en **[docs/flow/flow10.md](docs/flow/flow10.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -50,7 +55,7 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow9`, el mismo código que el capítulo 9):
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow10`):
 
 ![ScatteredDiagram](assets/diagram.png)
 
@@ -66,7 +71,7 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 ## Progreso del curso
 
 <!-- progress:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
-Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **10 de 17 capítulos** replicados.
+Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **11 de 17 capítulos** replicados.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
 - [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
@@ -77,7 +82,7 @@ Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en
 - [x] 8 · [CQRS](https://www.netmentor.es/entrada/patron-cqrs-explicado-10-minutos) para separar lecturas de escrituras · [guía](docs/flow/flow7.md)
 - [x] 9 · [Event Sourcing](https://www.netmentor.es/entrada/event-sourcing-explicado-facil) con MongoDB · [guía](docs/flow/flow8.md)
 - [x] 10 · [Consistencia eventual](https://www.netmentor.es/entrada/consistencia-eventual-microservicios) entre microservicios · [guía](docs/flow/flow9.md)
-- [ ] 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming)
+- [x] 11 · [Unificación de respuestas de API](https://www.netmentor.es/entrada/unificar-respuestas-api) con [ROP](https://www.netmentor.es/entrada/railway-oriented-programming) · [guía](docs/flow/flow10.md)
 - [ ] 12 · [Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas
 - [ ] 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net)
 - [ ] 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin
@@ -103,12 +108,13 @@ Scattered/
 │   │   ├── Orders/
 │   │   │   ├── Scattered.Services.Orders                   :50220  POST /order/create (202) · GET /order/{id} · PUT markaspaid|markasdispatched|markasdelivered
 │   │   │   │                                                       Event Sourcing: agregado OrderDetails + eventos en MongoDB (EventsOrders)
-│   │   │   ├── Scattered.Services.Orders.Consumer          :7225   consume order-queue
-│   │   │   └── Scattered.Services.Orders.Dto                       CreateOrderRequest · OrderResponse · DeliveryDetails · PaymentInformation
+│   │   │   ├── Scattered.Services.Orders.Consumer          :7225   consume order-domain-queue (pedidos) y order-queue (productos)
+│   │   │   ├── Scattered.Services.Orders.BusinessLogic             ProductNameService: nombres de producto (caché → MongoDB → HTTP)
+│   │   │   └── Scattered.Services.Orders.Dto                       CreateOrderRequest/Response · OrderResponse · DeliveryDetails · PaymentInformation
 │   │   ├── Products/
 │   │   │   ├── Scattered.Services.Products.Api.Write       :50320  POST /product (201) · PUT /product/updateproductdetails/{id} → MySQL
 │   │   │   ├── Scattered.Services.Products.Api.Read        :50321  GET /product/{id} → MongoDB
-│   │   │   ├── Scattered.Services.Products.Consumer        :50322  product-domain-queue → MongoDB + product-queue
+│   │   │   ├── Scattered.Services.Products.Consumer        :50322  ProductCreated/Updated → MongoDB + integración (product-queue, order.exchange)
 │   │   │   ├── Scattered.Services.Products.BusinessLogic           casos de uso, ProductsWriteStore (EF Core), ProductsReadStore (Mongo)
 │   │   │   └── Scattered.Services.Products.Dtos                    CreateProductRequest · ProductDetails · FullProductResponse · eventos
 │   │   └── Subscriptions/
@@ -127,13 +133,13 @@ Scattered/
 │       └── Shared.Communication/
 │           ├── Scattered.Shared.Communication            Mensajes, publisher, consumer y handlers (sin broker)
 │           └── Scattered.Shared.Communication.RabbitMQ   Implementación con RabbitMQ.Client
-│   └── Tests/Services/Subscriptions/…ApiTests   Test de API con WebApplicationFactory
+│   └── Tests/Services/                Subscriptions…ApiTests (WebApplicationFactory) · Orders…BusinessLogicTests (Moq)
 ├── tools/
 │   ├── rabbitmq/             rabbitmq.config + definitions.json (usuario y topología: suscripciones y pedidos)
 │   ├── vault/config.sh       Secretos KV (rabbitmq, mysql, mongodb), motor rabbitmq y rol scattered-role
-│   ├── consul/config.sh      Registro de RabbitMQ, SecretManager, MySql, MongoDb y los microservicios
+│   ├── consul/config.sh      Registro de RabbitMQ, SecretManager, MySql, MongoDb, Graylog y los microservicios
 │   ├── mysql/init.sql        Tabla Products + 3 productos (escritura)
-│   ├── mongodb/mongo-init.js Colección Products + 3 productos (lectura) + colección EventsOrders
+│   ├── mongodb/mongo-init.js Colección Products + 3 productos (lectura) + EventsOrders + ProductName
 │   └── local-development/    up.sh: docker-compose up + los dos config.sh
 ├── docs/
 │   ├── flow/                 Guía del flujo paso a paso, un archivo por capítulo
@@ -165,21 +171,19 @@ DefaultScatteredWebApplication.Run(app);
 
 ## ¿Cómo ejecutar la aplicación?
 
-Hace falta [Docker](https://www.netmentor.es/curso/docker) para RabbitMQ, Vault, Consul, Graylog, MySQL y MongoDB. `up.sh` levanta los contenedores, carga los secretos en Vault y registra los servicios en Consul:
+Hace falta [Docker](https://www.netmentor.es/curso/docker) para RabbitMQ, Vault, Consul, Graylog, MySQL y MongoDB. `up.sh` levanta los contenedores, carga los secretos en Vault y registra los servicios (también Graylog) en Consul:
 
 ```bash
 ./tools/local-development/up.sh
 dotnet build Scattered.sln
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Orders/Scattered.Services.Orders
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Services/Orders/Scattered.Services.Orders.Consumer
-DOTNET_ROLL_FORWARD=Major dotnet run --project src/Api/Public/Scattered.API.Public
-GW=https://localhost:7283/order-ms/order
-curl -k -X POST $GW/create -H 'Content-Type: application/json' -d '{"deliveryDetails":{"street":"Calle Mayor 1","city":"Madrid","country":"España"},"paymentInformation":{"cardNumber":"4111111111111111","expireDate":"12/28","security":"123"},"products":[{"productId":1,"quantity":2}]}'
-curl -k -X PUT "$GW/markaspaid?orderId=<id>"
-curl -k $GW/<id>                                   # orderStatus: Paid
+dotnet test src/Tests/Services/Orders/Scattered.Tests.Services.Orders.BusinessLogicTests
+# Arranca Products (Api.Write, Api.Read, Consumer), Orders, Orders.Consumer y API Public con DOTNET_ROLL_FORWARD=Major dotnet run
+curl -k -X POST https://localhost:50320/product -H 'Content-Type: application/json' \
+  -d '{"details":{"name":"Monitor 27","description":"IPS 144Hz"},"stock":7,"price":219.99}'     # 201 + ResultDto
+curl -k https://localhost:7283/order-ms/order/00000000-0000-0000-0000-000000000001                # 404 + ResultDto
 ```
 
-Los eventos de cada pedido se ven en MongoDB, colección `scattered.EventsOrders` (filtra por `TransactionId`, que empieza por el id). Products (CQRS) se ejecuta como en el [capítulo 8](docs/flow/flow7.md#cómo-ejecutarla). Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow8.md](docs/flow/flow8.md#cómo-ejecutarla); cómo reproducir las mediciones de consistencia eventual, en [docs/flow/flow9.md](docs/flow/flow9.md#cómo-reproducirlo).
+Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla).
 
 ## Cómo evoluciona este README
 
