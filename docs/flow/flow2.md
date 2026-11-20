@@ -5,7 +5,7 @@ En el capítulo 1 cada microservicio era una isla y el cliente tenía que conoce
 <!-- nav:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
 [← Capítulo 1](flow1.md) · [Índice del flujo](README.md) · [Siguiente: capítulo 3–4 →](flow3.md)
 
-Progreso: [1](flow1.md) · **2** · [3–4](flow3.md) · [5](flow4.md) · 6 · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
+Progreso: [1](flow1.md) · **2** · [3–4](flow3.md) · [5](flow4.md) · [6](flow5.md) · 7 · 8 · 9 · 10 · 11 · 12 · 13 · 14 · 15 · 16 · 17
 <!-- nav:end -->
 
 ## Contenido

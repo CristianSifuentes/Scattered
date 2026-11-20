@@ -13,7 +13,7 @@
    "summary": "Las credenciales de RabbitMQ salen de Vault: secreto KV para el consumer y usuario dinámico para el gateway"},
   {"flow": 5, "chapter": "6", "short": "Service discovery", "original": "06-Service-discovery-registry",
    "title": "[Service discovery / registry](https://www.netmentor.es/entrada/service-registry-discovery-consul) con Consul",
-   "summary": "Service discovery con Consul"},
+   "summary": "Las direcciones de Vault y RabbitMQ salen de Consul; los microservicios se registran pero los gateways aún no lo usan"},
   {"flow": 6, "chapter": "7", "short": "Logs en la nube", "original": "07-Logs-en-la-nube",
    "title": "[Sistema de logs](https://www.netmentor.es/entrada/servicio-logs-graylog) con Graylog y Serilog",
    "summary": "Logs con Serilog y Graylog"},
