@@ -4,38 +4,40 @@
 
 > **Nota:** Scattered es una copia renombrada de [Distribt](https://github.com/ElectNewt/Distribt), proyecto creado por Ivan Abad ([NetMentor](https://www.netmentor.es)) y publicado bajo licencia MIT. El curso y los artículos enlazados en este documento pertenecen al autor original.
 >
-> **Esta rama (`features/flow14`)** replica la rama [`15-Api-key`](https://github.com/ElectNewt/Distribt/tree/15-Api-key) del proyecto original (commit `21bbc57`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
+> **Esta rama (`features/flow15`)** replica la rama [`16-rate-limiting`](https://github.com/ElectNewt/Distribt/tree/16-rate-limiting) del proyecto original (commit `4fd8e17`), renombrada de Distribt a Scattered. Cada capítulo del curso se replica en su propia rama `features/flowN`; la guía de cada uno, con qué cambió y cómo ejecutarlo, está en **[docs/flow/README.md](docs/flow/README.md)**.
 
 ## Estado de esta rama
 
 | | |
 |---|---|
-| Rama | `features/flow14` (nace de `features/flow13`) |
-| Capítulo del curso | 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes |
-| Rama original | [`15-Api-key`](https://github.com/ElectNewt/Distribt/tree/15-Api-key) (`21bbc57`) |
-| Qué hay | Lo de los capítulos anteriores + **el gateway privado exige una API key** en la cabecera `apiKey` (salvo `/health`); documentación de `Shared.Discovery` y `Shared.Secrets` |
-| Qué falta | Rate limiting y paso a .NET 7 (cap. 16) |
+| Rama | `features/flow15` (nace de `features/flow14`) |
+| Capítulo del curso | 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting) (y paso a .NET 7) |
+| Rama original | [`16-rate-limiting`](https://github.com/ElectNewt/Distribt/tree/16-rate-limiting) (`4fd8e17`) |
+| Qué hay | Lo de los capítulos anteriores, **compilado para .NET 7**, + un endpoint del gateway privado limitado a **2 llamadas por hora y por API key** (`429` al superarlo) |
+| Qué falta | .NET Aspire (cap. 17, rama aparte en el original) |
 | Infraestructura | Los 12 contenedores del capítulo 14: `./tools/local-development/up.sh` |
-| Guía del capítulo | [docs/flow/flow14.md](docs/flow/flow14.md) |
-| Siguiente capítulo | 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting) (`16-rate-limiting`) |
+| Guía del capítulo | [docs/flow/flow15.md](docs/flow/flow15.md) |
+| Siguiente capítulo | 17 · [.NET Aspire](https://www.netmentor.es/entrada/introduccion-net-aspire) (`17-Aspire-version2023`) |
 
 ## Qué cambió en este capítulo
 
-Respecto a `features/flow13` ([capítulo 14](docs/flow/flow13.md)) el gateway privado (`:7022`, para clientes concretos) deja de estar abierto: un middleware compara la cabecera **`apiKey`** de cada petición con la clave configurada y, si falta o no coincide, corta la petición.
+Respecto a `features/flow14` ([capítulo 15](docs/flow/flow14.md)) el proyecto **sube a .NET 7** (`net6.0` → `net7.0` en `GlobalSettings.msbuild` y en cada `.csproj`) para usar el **rate limiting** integrado: la API key dice quién llama, y el límite cuántas veces puede hacerlo.
 
 | Cambio | Dónde | Para qué |
 |---|---|---|
-| `ApiKeyMiddleware` + `AddApiToken` / `UseApiTokenMiddleware` | `Shared.Setup/API/Key/` | Exigir la clave en todas las rutas salvo `/health` |
-| `"ApiKey": { "clientId", "value" }` + registro del middleware | API Private | Activar la clave solo en el gateway privado |
-| `docs/discovery/Readme.md`, `docs/secrets/Readme.md` | `docs/` | Cómo usar las librerías de service discovery y secretos |
+| `net7.0` en todos los proyectos; Swashbuckle 6.4.0 en `Shared.Setup` | `GlobalSettings.msbuild`, `src/**/*.csproj` | Acceso al limitador de ASP.NET Core 7 |
+| `ScatteredRateLimiterPolicy` (ventana fija, 2 permisos / 60 min, partición por `apiKey`, `429` al rechazar) | `Shared.Setup/API/RateLimiting/` | Política reutilizable |
+| `UseRateLimiter` + `GET /rate-limiting-test` con `RequireRateLimiting` | API Private | Ejemplo de endpoint limitado |
+| `AddRateLimiter(_ => { })` (propio) | API Private | Sin él, el gateway no arranca con el runtime de .NET 8 o superior |
 
 ```text
-curl -k https://localhost:7022/reports/order/<id>                          → 500 UnauthorizedAccessException: The API Key is missing
-curl -k -H "apiKey: b92b0bdf-…" https://localhost:7022/reports/order/<id>  → 200
-curl -k https://localhost:7022/health                                      → 200 (sin clave)
+KEY=b92b0bdf-da95-42a8-a2b1-780ca461aaf3
+curl -k -H "apiKey: $KEY" https://localhost:7022/rate-limiting-test   → 200 Hello World!
+curl -k -H "apiKey: $KEY" https://localhost:7022/rate-limiting-test   → 200 Hello World!
+curl -k -H "apiKey: $KEY" https://localhost:7022/rate-limiting-test   → 429 Lots of calls, please try later
 ```
 
-Lo que conviene saber al probarlo: sin clave (o con una incorrecta) la respuesta es un **500**, no un 401; `/health-ui` y Swagger también quedan detrás de la clave; y los servicios siguen accesibles directamente sin ella. El diff del original aplica limpio. Detalle en **[docs/flow/flow14.md](docs/flow/flow14.md)**.
+Lo que conviene saber al probarlo: solo ese endpoint está limitado (el resto del gateway no); el contador vive en memoria y se reinicia con el proceso; .NET 7 tampoco tiene soporte ya (aviso `NETSDK1138`); y en este equipo se ejecuta con el runtime de .NET 10 (`DOTNET_ROLL_FORWARD=Major`). Detalle en **[docs/flow/flow15.md](docs/flow/flow15.md)**.
 
 ## ¿Qué es Scattered?
 
@@ -49,7 +51,7 @@ Es importante saber estos conceptos ya que cada día las empresas están migrand
 
 Vamos a ver un sistema distribuido con múltiples características, como pueden ser patrón consumer/publisher, sagas, service discovery, Eventual consistency, etc.
 
-Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow14`):
+Esta es la arquitectura planteada en el capítulo 1, marcada con lo que ya existe en esta rama (`features/flow15`):
 
 ![ScatteredDiagram](assets/diagram.png)
 
@@ -65,7 +67,7 @@ Alternativamente, si lo prefieres, puedes seguir los post con el código detalla
 ## Progreso del curso
 
 <!-- progress:start (generado por tools/docs/progress.py desde docs/flow/chapters.json; no editar a mano) -->
-Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **15 de 17 capítulos** replicados.
+Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en `docs/flow`. **16 de 17 capítulos** replicados.
 
 - [x] 1 · [API Rest](https://www.netmentor.es/entrada/api-rest-csharp): esqueleto de microservicios creados con .NET · [guía](docs/flow/flow1.md)
 - [x] 2 · [Patrón API Gateway](https://www.netmentor.es/entrada/patron-api-gateway) con YARP · [guía](docs/flow/flow2.md)
@@ -80,8 +82,8 @@ Cada capítulo se replica en su propia rama `features/flowN` y tiene su guía en
 - [x] 12 · [Patrón SAGA](https://www.netmentor.es/entrada/patron-saga) para transacciones distribuidas · [guía](docs/flow/flow11.md)
 - [x] 13 · [Health checks](https://www.netmentor.es/entrada/health-checks-asp-net) · [guía](docs/flow/flow12.md)
 - [x] 14 · [Observabilidad](https://www.netmentor.es/entrada/monitorizacion-sistemas-distribuidos) con OpenTelemetry, Prometheus, Grafana y Zipkin · [guía](docs/flow/flow13.md)
-- [x] 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes · [guía](docs/flow/flow14.md) **← esta rama**
-- [ ] 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting)
+- [x] 15 · [API Key](https://www.netmentor.es/entrada/explicacion-api-key) para las llamadas desde clientes · [guía](docs/flow/flow14.md)
+- [x] 16 · [Rate Limiting](https://www.netmentor.es/entrada/rate-limiting) · [guía](docs/flow/flow15.md) **← esta rama**
 - [ ] 17 · [.NET Aspire](https://www.netmentor.es/entrada/introduccion-net-aspire) (rama aparte en el original)
 <!-- progress:end -->
 
@@ -96,7 +98,7 @@ Scattered/
 ├── src/
 │   ├── Api/
 │   │   ├── Public/Scattered.API.Public       Gateway YARP :7283  /order-ms/* · /product-ms/* + POST /subscribe (publica)
-│   │   └── Private/Scattered.API.Private     Gateway YARP :7022  /reports/* (exige cabecera apiKey)
+│   │   └── Private/Scattered.API.Private     Gateway YARP :7022  /reports/* (exige cabecera apiKey) · /rate-limiting-test (2/hora)
 │   ├── Services/
 │   │   ├── Emails/Scattered.Services.Emails                :50120  POST /email
 │   │   ├── Orders/
@@ -144,7 +146,7 @@ Scattered/
 ├── assets/                   Imágenes de este README
 ├── GlobalSettings.msbuild    Configuración común (net6.0, Nullable, TreatWarningsAsErrors, metadatos) de las librerías de src/Shared
 ├── docker-compose.yaml       RabbitMQ 3.8.34 (:5672, UI :15672) + Vault (:8200) + Consul (:8500) + Graylog (:9000) + MySQL (:3307) + MongoDB (:27017) + collector (:4317) + Prometheus (:9090) + Grafana (:3000) + Zipkin (:9411)
-└── Scattered.sln             Solución (.NET 6)
+└── Scattered.sln             Solución (.NET 7)
 ```
 
 * **Api**: los API Gateways. Reenvían peticiones HTTP con YARP y, en el caso del público, también **publican mensajes** (`POST /subscribe`).
@@ -183,7 +185,7 @@ curl -k -X POST https://localhost:50320/product -H 'Content-Type: application/js
 curl -k https://localhost:7283/order-ms/order/00000000-0000-0000-0000-000000000001                # 404 + ResultDto
 ```
 
-Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla); los health checks, en [docs/flow/flow12.md](docs/flow/flow12.md#cómo-ejecutarla); trazas (Zipkin :9411), métricas (Prometheus :9090) y paneles (Grafana :3000, `admin` / `admin`), en [docs/flow/flow13.md](docs/flow/flow13.md#cómo-ejecutarla). El gateway privado necesita la cabecera `apiKey` (valor en su `appsettings.json`, ver [docs/flow/flow14.md](docs/flow/flow14.md#cómo-ejecutarla)).
+Si RabbitMQ ya estaba corriendo, reinícialo (`docker restart rabbitmq`) para que cree `order-domain-queue` y los enlaces nuevos. Las UIs: Consul (:8500), Vault (:8200, token `vault-scattered-token`), RabbitMQ (:15672, `ScatteredAdmin` / `ScatteredPass`) y Graylog (:9000, `admin` / `admin`). La lista completa de comandos, el flujo end to end y los problemas conocidos están en [docs/flow/flow10.md](docs/flow/flow10.md#cómo-ejecutarla); los health checks, en [docs/flow/flow12.md](docs/flow/flow12.md#cómo-ejecutarla); trazas (Zipkin :9411), métricas (Prometheus :9090) y paneles (Grafana :3000, `admin` / `admin`), en [docs/flow/flow13.md](docs/flow/flow13.md#cómo-ejecutarla). El gateway privado necesita la cabecera `apiKey` (valor en su `appsettings.json`, ver [docs/flow/flow14.md](docs/flow/flow14.md#cómo-ejecutarla)); el ejemplo de rate limiting, en [docs/flow/flow15.md](docs/flow/flow15.md#cómo-ejecutarla).
 
 ## Cómo evoluciona este README
 

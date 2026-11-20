@@ -10,7 +10,7 @@ Qué contenedores levanta `docker-compose.yaml` en cada capítulo, qué corre de
 
 ## Estado actual
 
-Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow14` en la copia de trabajo.
+Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow15` en la copia de trabajo.
 
 | Contenedor | Imagen | Estado | Creado desde | Qué corre dentro ahora |
 |---|---|---|---|---|
@@ -29,14 +29,14 @@ Foto de `docker ps -a` tomada el **2026-11-19** con `features/flow14` en la copi
 
 - Ya no queda ningún contenedor detenido: los 12 de `main` están en uso. Los que venían de `main` se crearon con el `docker-compose.yaml` de `main` y salieron con código `255`, que en Docker Desktop suele significar que se reinició Docker o la máquina, no que fallaran.
 - Todos comparten el proyecto de compose `scattered` y nombres fijos (`container_name`), así que **cada rama reutiliza el mismo contenedor**. `rabbitmq` (3.8.34 en `main`), `vault` (con dependencia de Consul en `main`) y `consul` se recrearon con la configuración de las ramas `flowN`. Ojo con `consul`: al recrearlo, compose **conserva su volumen anónimo `/consul/data`** y con él los servicios registrados por otra rama; para empezar limpio, `docker rm -fv consul` antes de `docker compose up -d consul`. Al cambiar de rama: `docker compose up -d --force-recreate`.
-- `features/flow14` necesita **los 12**: `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
+- `features/flow15` necesita **los 12**: `rabbitmq`, `vault`, `consul`, los 3 de Graylog, `MySql` y `MongoDb`. Los otros 4 (telemetría) no existen todavía en su `docker-compose.yaml`.
 - `mongo_graylog`, `elasticserach_graylog`, `MySql` y `MongoDb` tienen la misma configuración en `main` y en estas ramas, así que `docker compose up -d` los reutiliza **con sus datos**: los scripts de inicio (`init.sql`, `mongo-init.js`) no se vuelven a ejecutar. `graylog` se recrea al cambiar su configuración.
 
 ## Línea de tiempo
 
 Qué contenedores define el `docker-compose.yaml` de cada rama del original. ● = definido y usado · ○ = definido pero el código aún no lo usa · ✔ = capítulo ya replicado en Scattered.
 
-| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 ✔ | 13 ✔ | 14–16 (14–15 ✔) | main |
+| Contenedor | 1 ✔ | 2 ✔ | 3–4 ✔ | 5 ✔ | 6 ✔ | 7 ✔ | 8 ✔ | 9–12 ✔ | 13 ✔ | 14–16 ✔ | main |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `rabbitmq` | ○ 3 | ○ 3 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.9 | ● 3.8 | ● 3.8.34 | ● 3.8.34 |
 | `vault` | | | | ● | ● | ● | ● | ● | ● | ● | ● |
@@ -136,7 +136,11 @@ En la columna de RabbitMQ figura la versión de la imagen, que cambia a lo largo
 
 - No cambia nada en los contenedores: la API key es un middleware del gateway privado.
 
-### Capítulo 16 y `main`
+### Capítulo 16 · Rate limiting · `features/flow15` ✔
+
+- No cambia nada en los contenedores: el límite se aplica en memoria del gateway privado.
+
+### `main`
 
 - No nacen contenedores. `main` es el estado final con los 12.
 
@@ -296,6 +300,7 @@ Al replicar un capítulo que toca `docker-compose.yaml`:
 
 | Fecha | Rama | Cambio |
 |---|---|---|
+| 2026-11-20 | `features/flow15` | Capítulo 16: sin cambios de contenedores |
 | 2026-11-20 | `features/flow14` | Capítulo 15: sin cambios de contenedores |
 | 2026-11-20 | `features/flow13` | Capítulo 14: nacen collector, Prometheus, Grafana y Zipkin (reutilizados de `main`); `rabbitmq` recreado con 3.8.34 y `enabled_plugins`. **Los 12 contenedores corriendo** |
 | 2026-11-20 | `features/flow12` | Capítulo 13: `rabbitmq` recreado con la imagen 3.8 y `rabbitmq.conf`; health checks en los servicios |
